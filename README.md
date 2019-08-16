@@ -1,4 +1,5 @@
 # Signed HTTP Exchange library
+[![Build Status](https://travis-ci.org/google/libsxg.svg?branch=master)](https://travis-ci.org/google/libsxg)
 
 ## Introduction
 
