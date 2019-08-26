@@ -1,0 +1,17 @@
+language: cpp
+
+matrix:
+  include:
+    - os: linux
+      compiler: clang
+
+before_script:
+  - source ./.travis/install_cmake.sh
+  - source ./.travis/install_openssl.sh
+
+script:
+  - install -d build
+  - cd build
+  - cmake -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC ..
+  - make VERBOSE=1
+  - make test
