@@ -5,8 +5,6 @@ matrix:
     - os: linux
       compiler: clang
 
-before_install:
-  - eval "${MATRIX_EVAL}"
 before_script:
   - source ./.travis/install_cmake.sh
   - source ./.travis/install_openssl.sh
