@@ -1,20 +1,27 @@
 name: C/C++ CI
 
+
 on: [push]
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-18.04, ubuntu-latest, macOS-latest]
+        os: [ubuntu-18.04, ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
     
     steps:
-    - uses: actions/checkout@v1
-    - name: create builddir
-      run: mkdir build
-    - name: build
-      run: cd build && cmake .. -DSKIP_TEST=TRUE -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ && make
-    - name: package
-      run: ./packaging/build_deb
+      - uses: actions/checkout@v1
+      - name: create builddir
+        run: mkdir build
+      - name: build
+        run: cd build && cmake .. -DSKIP_TEST=TRUE -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ && make
+      - name: Prepare toolkit.
+        run: sudo apt-get install debuild
+      - name: Package
+        run: ./packaging/build_deb
+      - name: Upload
+        run: ./packaging/upload_binary
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}

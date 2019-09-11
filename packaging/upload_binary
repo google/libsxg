@@ -1,0 +1,3 @@
+#!/bin/bash -x -e
+FILE=$(ls |grep libsxg-dev.*.deb$)
+curl -sSL -XPOST -H "Authorization: token ${TOKEN}" --header "Content-Type: application/octet-stream" --upload-file ${FILE} "https://uploads.github.com/repos/libsxg/releases/1/assets?name=${FILE}"
