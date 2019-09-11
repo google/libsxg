@@ -12,24 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.12)
-project(sxg)
 
-set(CMAKE_PROJECT_VERSION "0")
-set(CMAKE_PROJECT_VERSION_MAJOR "0")
-set(CMAKE_PROJECT_VERSION_MINOR "1")
-set(CMAKE_PROJECT_VERSION_PATCH "0")
+project (sxg)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c99")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -ggdb")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -ggdb")
+set (CMAKE_PROJECT_VERSION "0")
+set (CMAKE_PROJECT_VERSION_MAJOR "0")
+set (CMAKE_PROJECT_VERSION_MINOR "1")
+set (CMAKE_PROJECT_VERSION_PATCH "0")
 
-include(ExternalProject)
-set_property(DIRECTORY ${PROJECT_SOURCE_DIR}
-  PROPERTY EP_UPDATE_DISCONNECTED 1)
+if (NOT CMAKE_BUILD_TYPE)
+  set (CMAKE_BUILD_TYPE Release)
+endif ()
+if (NOT DEFINED SKIP_TEST)
+  set (SKIP_TEST FALSE)
+endif ()
 
-find_package(OpenSSL REQUIRED)
+if (SKIP_TEST)
+  cmake_minimum_required (VERSION 3.0)
+else ()
+  # `target_link_options` used in fuzzing test requires 3.13
+  cmake_minimum_required (VERSION 3.13)
+endif ()
+
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c99")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -ggdb")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -ggdb")
+
+include (ExternalProject)
+set_property(
+  DIRECTORY ${PROJECT_SOURCE_DIR}
+  PROPERTY EP_UPDATE_DISCONNECTED 1
+)
+
+find_package (OpenSSL REQUIRED)
 
 add_library(sxg
   src/sxg_buffer.c
@@ -43,131 +59,165 @@ add_library(sxg
   src/sxg_signer_list.c
 )
 
-target_include_directories(sxg
+target_include_directories(
+  sxg
   PRIVATE
     ${PROJECT_SOURCE_DIR}/include
     ${OPENSSL_INCLUDE_DIR}
 )
 
-target_link_libraries(sxg
+target_link_libraries(
+  sxg
   INTERFACE
     ${OPENSSL_LIBRARIES}
 )
 
 ########################################
-## Testing
+## Installing
 ########################################
 
-enable_testing()
-file(COPY tests/testdata DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+set_target_properties (sxg PROPERTIES PUBLIC_HEADER "${HEADERS}")
+install (
+  TARGETS sxg
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  COMPONENT library
+)
+install (
+  DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+  FILES_MATCHING PATTERN "*.h*"
+)
 
-ExternalProject_Add(
-  gtest
-  GIT_REPOSITORY https://github.com/google/googletest
-  GIT_TAG master
-  SOURCE_DIR ${PROJECT_BINARY_DIR}/third_party/gtest
-  BINARY_DIR ${PROJECT_BINARY_DIR}/gtest
-  INSTALL_COMMAND ""
-)
-add_library(libgtest IMPORTED STATIC GLOBAL)
-add_dependencies(libgtest gtest)
-set_target_properties(libgtest PROPERTIES
-    "IMPORTED_LOCATION" "${PROJECT_BINARY_DIR}/gtest/lib/libgtest.a"
-    "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-)
-add_library(libgtest_main IMPORTED STATIC GLOBAL)
-add_dependencies(libgtest_main gtest)
-set_target_properties(libgtest_main PROPERTIES
-    "IMPORTED_LOCATION" "${PROJECT_BINARY_DIR}/gtest/lib/libgtest_main.a"
-    "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-)
-set(GTEST_INCLUDE ${PROJECT_BINARY_DIR}/third_party/gtest/googletest/include)
+########################################
+## Testing
+########################################
+if (NOT SKIP_TEST)
+  enable_testing ()
+  file (COPY tests/testdata DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+  ExternalProject_Add(
+    gtest
+    GIT_REPOSITORY https://github.com/google/googletest
+    GIT_TAG master
+    SOURCE_DIR ${PROJECT_BINARY_DIR}/third_party/gtest
+    BINARY_DIR ${PROJECT_BINARY_DIR}/gtest
+    INSTALL_COMMAND ""
+  )
+  add_library (libgtest IMPORTED STATIC GLOBAL)
+  add_dependencies (libgtest gtest)
+  set_target_properties(
+    libgtest PROPERTIES
+      "IMPORTED_LOCATION" "${PROJECT_BINARY_DIR}/gtest/lib/libgtest.a"
+      "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
+  )
+  add_library (libgtest_main IMPORTED STATIC GLOBAL)
+  add_dependencies (libgtest_main gtest)
+  set_target_properties(
+    libgtest_main PROPERTIES
+      "IMPORTED_LOCATION" "${PROJECT_BINARY_DIR}/gtest/lib/libgtest_main.a"
+      "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
+  )
+  set (GTEST_INCLUDE ${PROJECT_BINARY_DIR}/third_party/gtest/googletest/include)
+endif ()
 
 function (add_plain_test test_name)
-  set(target_name "${test_name}")
-  add_executable(${target_name} tests/${test_name}.cc)
+  set (target_name "${test_name}")
+  add_executable (${target_name} tests/${test_name}.cc)
   add_test(
     NAME ${target_name}
     COMMAND ${target_name}
   )
-  add_dependencies(${target_name} sxg libgtest libgtest_main gtest)
-  target_link_libraries(${target_name} sxg libgtest libgtest_main pthread)
-  target_include_directories(${target_name}
+  add_dependencies (${target_name} sxg libgtest libgtest_main gtest)
+  target_link_libraries (${target_name} sxg libgtest libgtest_main pthread)
+  target_include_directories(
+    ${target_name}
     PRIVATE
       ${PROJECT_SOURCE_DIR}/include
       ${GTEST_INCLUDE}
   )
-endfunction()
+endfunction ()
 
-set(SANITIZER_OPTIONS "-fsanitize=address,leak,undefined")
+set (SANITIZER_OPTIONS "-fsanitize=address,leak,undefined")
 function (add_sanitizer_test test_name)
-  set(target_name "${test_name}_sanitizer")
-  add_executable(${target_name} tests/${test_name}.cc)
-  target_compile_options(${target_name}
+  set (target_name "${test_name}_sanitizer")
+  add_executable (${target_name} tests/${test_name}.cc)
+  target_compile_options(
+    ${target_name}
     PRIVATE
-    ${SANITIZER_OPTIONS}
+      ${SANITIZER_OPTIONS}
   )
-  target_link_options(${target_name}
+  target_link_options(
+    ${target_name}
     PRIVATE
-    ${SANITIZER_OPTIONS}
+      ${SANITIZER_OPTIONS}
   )
 
   add_test(
     NAME ${target_name}
     COMMAND ${target_name}
   )
-  add_dependencies(${target_name} sxg libgtest libgtest_main gtest)
-  target_link_libraries(${target_name} sxg libgtest libgtest_main pthread)
-  target_include_directories(${target_name}
+  add_dependencies (${target_name} sxg libgtest libgtest_main gtest)
+  target_link_libraries (${target_name} sxg libgtest libgtest_main pthread)
+  target_include_directories(
+    ${target_name}
     PRIVATE
       ${PROJECT_SOURCE_DIR}/include
       ${GTEST_INCLUDE}
   )
-endfunction()
+endfunction ()
 
-function(configure_test test_name)
-  message("-- Configuring test: ${test_name}")
-  add_plain_test(${test_name})
-  add_sanitizer_test(${test_name})
-endfunction()
-configure_test(sxg_buffer_test)
-configure_test(sxg_codec_test)
-configure_test(sxg_header_test)
-configure_test(sxg_sig_test)
-configure_test(sxg_encoded_response_test)
-configure_test(sxg_signer_list_test)
-configure_test(toplevel_test)
-configure_test(sxg_generate_test)
-configure_test(nfail_malloc_test)
+function (configure_test test_name)
+  message ("-- Configuring test: ${test_name}")
+  add_plain_test (${test_name})
+  add_sanitizer_test (${test_name})
+endfunction ()
 
+if (NOT SKIP_TEST)
+  configure_test (sxg_buffer_test)
+  configure_test (sxg_codec_test)
+  configure_test (sxg_header_test)
+  configure_test (sxg_sig_test)
+  configure_test (sxg_encoded_response_test)
+  configure_test (sxg_signer_list_test)
+  configure_test (toplevel_test)
+  configure_test (sxg_generate_test)
+  configure_test (nfail_malloc_test)
+endif ()
 
 
 ########################################
 ## Fuzzing
 ########################################
 
-macro(configure_fuzzer fuzzer_name)
-  message("-- Configuring fuzzer: ${fuzzer_name}")
-  add_executable(${fuzzer_name} fuzzers/${fuzzer_name}.cc)
-  target_compile_options(${fuzzer_name}
+function (configure_fuzzer fuzzer_name)
+  message ("-- Configuring fuzzer: ${fuzzer_name}")
+  add_executable (${fuzzer_name} fuzzers/${fuzzer_name}.cc)
+  target_compile_options(
+    ${fuzzer_name}
     PRIVATE
-    -fsanitize=address,fuzzer
+      -fsanitize=address,fuzzer
   )
-  target_link_options(${fuzzer_name}
+  target_link_options(
+    ${fuzzer_name}
     PRIVATE
-    -fsanitize=address,fuzzer
+      -fsanitize=address,fuzzer
   )
 
-  add_dependencies(${fuzzer_name} sxg)
-  target_link_libraries(${fuzzer_name}
+  add_dependencies (${fuzzer_name} sxg)
+  target_link_libraries(
+    ${fuzzer_name}
     PRIVATE
       sxg
       ${OPENSSL_LIBRARIES}
   )
-  target_include_directories(${fuzzer_name}
+  target_include_directories(
+    ${fuzzer_name}
     PRIVATE
       ${PROJECT_SOURCE_DIR}/include
   )
-endmacro()
+endfunction ()
 
-configure_fuzzer(signer_fuzzer)
+if (NOT SKIP_TEST)
+  configure_fuzzer(signer_fuzzer)
+endif ()
