@@ -4,8 +4,11 @@ on: [push]
 
 jobs:
   build:
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-latest, macOS-latest]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     
     steps:
     - uses: actions/checkout@v1
@@ -13,3 +16,5 @@ jobs:
       run: mkdir build
     - name: build
       run: cd build && cmake .. -DSKIP_TEST=TRUE -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ && make
+    - name: package
+      run: ./packaging/build_deb
