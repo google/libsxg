@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # This script is for generating libsxg-*.*.deb by CI.
-# Generate .deb file and copy it to the current directory.
+# It generates .deb file and copy it to the current directory.
 # Execute this shell-script at root directory of libsxg project.
 set -ex
 
@@ -17,12 +17,38 @@ git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.tar.gz" -v master \
     --prefix="${TARNAME}/" 2> /dev/null
 
 echo "Working in ${WORKDIR}"
-pushd "${WORKDIR}"
+cd "${WORKDIR}"
+
 tar xf "${TARNAME}.tar.gz"
+if [[ $? -ne 0 ]]; then
+  echo "Unable to decompress ${TARNAME}.tar.gz" >&2
+  exit 1
+fi
+
 cp "${TARNAME}.tar.gz" "${NAME}_${VERSION}.orig.tar.gz"
-pushd "${TARNAME}"
+if [[ $? -ne 0 ]]; then
+  echo "Unable to copy ${TARNAME}.tar.gz to ${NAME}_${VERSION}.orig.tar.gz" >&2
+  exit 1
+fi
+cd "${TARNAME}"
+
 cp -r "${SRCDIR}/packaging/debian" .
+if [[ $? -ne 0 ]]; then
+  echo "Unable to copy ${SRCDIR}/packaging/debian to ${WORKDIR}/${TARNAME}" >&2
+  exit 1
+fi
+
 debuild --no-tgz-check -uc -us -b
+if [[ $? -ne 0 ]]; then
+  echo "Failed on debuild" >&2
+  exit 1
+fi
+
 cp "../${TARGET_NAME}_${VERSION}_${ARCHITECTURE}.deb" "${SRCDIR}"
+if [[ $? -ne 0 ]]; then
+  echo "Unable to copy ${TARGET_NAME}_${VERSION}_${ARCHITECTURE}.deb to ${SRCDIR}" >&2
+  exit 1
+fi
+
 rm -rf "${WORKDIR}"
 
