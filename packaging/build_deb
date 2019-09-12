@@ -1,0 +1,25 @@
+#!/bin/bash -xe
+# Execute this shell-script at root directory of libsxg project.
+
+SRCDIR=$(pwd)
+WORKDIR=$(mktemp -d)
+
+NAME="libsxg"
+VERSION="0.1"
+TARNAME="${NAME}-${VERSION}"
+TARGET_NAME="libsxg-dev"
+ARCHITECTURE=$(dpkg --print-architecture)
+
+echo "Working in ${WORKDIR}"
+git archive --format=tar.gz --output="${TARNAME}.tar.gz" -v HEAD \
+    --prefix="${TARNAME}/" 2> /dev/null
+mv "${TARNAME}.tar.gz" "${WORKDIR}"
+pushd "${WORKDIR}"
+tar xf "${TARNAME}.tar.gz"
+cp "${TARNAME}.tar.gz" "${NAME}_${VERSION}.orig.tar.gz"
+cp -r "${SRCDIR}/packaging/debian" "${TARNAME}"
+pushd "${TARNAME}"
+debuild --no-tgz-check -uc -us -b
+cp "../${TARGET_NAME}_${VERSION}_${ARCHITECTURE}.deb" "${SRCDIR}"
+popd
+popd
