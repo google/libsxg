@@ -1,25 +1,28 @@
-#!/bin/bash -xe
+#!/bin/bash
+#
+# This script is for generating libsxg-*.*.deb by CI.
+# Generate .deb file and copy it to the current directory.
 # Execute this shell-script at root directory of libsxg project.
+set -ex
 
-SRCDIR=$(pwd)
-WORKDIR=$(mktemp -d)
+readonly SRCDIR="${PWD}"
+readonly WORKDIR="$(mktemp -d)"
+readonly NAME='libsxg'
+readonly VERSION='0.1'
+readonly TARNAME="${NAME}-${VERSION}"
+readonly TARGET_NAME='libsxg-dev'
+readonly ARCHITECTURE="$(dpkg --print-architecture)"
 
-NAME="libsxg"
-VERSION="0.1"
-TARNAME="${NAME}-${VERSION}"
-TARGET_NAME="libsxg-dev"
-ARCHITECTURE=$(dpkg --print-architecture)
+git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.tar.gz" -v master \
+    --prefix="${TARNAME}/" 2> /dev/null
 
 echo "Working in ${WORKDIR}"
-git archive --format=tar.gz --output="${TARNAME}.tar.gz" -v HEAD \
-    --prefix="${TARNAME}/" 2> /dev/null
-mv "${TARNAME}.tar.gz" "${WORKDIR}"
 pushd "${WORKDIR}"
 tar xf "${TARNAME}.tar.gz"
 cp "${TARNAME}.tar.gz" "${NAME}_${VERSION}.orig.tar.gz"
-cp -r "${SRCDIR}/packaging/debian" "${TARNAME}"
 pushd "${TARNAME}"
+cp -r "${SRCDIR}/packaging/debian" .
 debuild --no-tgz-check -uc -us -b
 cp "../${TARGET_NAME}_${VERSION}_${ARCHITECTURE}.deb" "${SRCDIR}"
-popd
-popd
+rm -rf "${WORKDIR}"
+
