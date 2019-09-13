@@ -1,8 +1,11 @@
 #!/bin/bash
 #
-# This script is for generating libsxg-*.*.deb by CI.
-# It generates .deb file and copy it to the current directory.
-# Execute this shell-script at root directory of libsxg project.
+# Builds the libsxg deb packages. The script must be run at the root
+# directory of the libsxg source tree. The deb packages will be copied to
+# the current directory.
+#
+# This script is written mainly for CI.
+
 set -ex
 
 readonly SRCDIR="${PWD}"
@@ -13,42 +16,19 @@ readonly TARNAME="${NAME}-${VERSION}"
 readonly TARGET_NAME='libsxg-dev'
 readonly ARCHITECTURE="$(dpkg --print-architecture)"
 
-git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.tar.gz" -v master \
-    --prefix="${TARNAME}/" 2> /dev/null
-
 echo "Working in ${WORKDIR}"
+
+git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.tar.gz" \
+    --prefix="${TARNAME}/" master 2> /dev/null
 cd "${WORKDIR}"
 
 tar xf "${TARNAME}.tar.gz"
-if [[ $? -ne 0 ]]; then
-  echo "Unable to decompress ${TARNAME}.tar.gz" >&2
-  exit 1
-fi
-
 cp "${TARNAME}.tar.gz" "${NAME}_${VERSION}.orig.tar.gz"
-if [[ $? -ne 0 ]]; then
-  echo "Unable to copy ${TARNAME}.tar.gz to ${NAME}_${VERSION}.orig.tar.gz" >&2
-  exit 1
-fi
 cd "${TARNAME}"
-
 cp -r "${SRCDIR}/packaging/debian" .
-if [[ $? -ne 0 ]]; then
-  echo "Unable to copy ${SRCDIR}/packaging/debian to ${WORKDIR}/${TARNAME}" >&2
-  exit 1
-fi
 
 debuild --no-tgz-check -uc -us -b
-if [[ $? -ne 0 ]]; then
-  echo "Failed on debuild" >&2
-  exit 1
-fi
 
 cp "../${TARGET_NAME}_${VERSION}_${ARCHITECTURE}.deb" "${SRCDIR}"
-if [[ $? -ne 0 ]]; then
-  echo "Unable to copy ${TARGET_NAME}_${VERSION}_${ARCHITECTURE}.deb to ${SRCDIR}" >&2
-  exit 1
-fi
 
 rm -rf "${WORKDIR}"
-
