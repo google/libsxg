@@ -3,7 +3,7 @@ Upstream-Name: libsxg
 Source: https://github.com/google/libsxg
 
 Files: *
-Copyright: 2019 Google LLC <kumagi@google.com>
+Copyright: 2019 Google LLC
 License: Apache-2.0
 
 License: Apache-2.0

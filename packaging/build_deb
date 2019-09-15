@@ -9,23 +9,21 @@
 set -ex
 
 readonly SRCDIR="${PWD}"
-readonly WORKDIR="$(mktemp -d)"
+readonly WORKDIR="$(mktemp -d --tmpdir=/tmp build_deb.XXXXXX)"
 readonly NAME='libsxg'
 readonly VERSION='0.1'
-readonly TARNAME="${NAME}-${VERSION}"
+readonly TARNAME="${NAME}_${VERSION}"
 readonly TARGET_NAME='libsxg-dev'
 readonly ARCHITECTURE="$(dpkg --print-architecture)"
 
 echo "Working in ${WORKDIR}"
 
-git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.tar.gz" \
-    --prefix="${TARNAME}/" master 2> /dev/null
+git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.orig.tar.gz" \
+    --prefix="${TARNAME}/" HEAD
 cd "${WORKDIR}"
-
-tar xf "${TARNAME}.tar.gz"
-cp "${TARNAME}.tar.gz" "${NAME}_${VERSION}.orig.tar.gz"
+tar xf "${TARNAME}.orig.tar.gz"
 cd "${TARNAME}"
-cp -r "${SRCDIR}/packaging/debian" .
+ln -s "packaging/debian" .
 
 debuild --no-tgz-check -uc -us -b
 
