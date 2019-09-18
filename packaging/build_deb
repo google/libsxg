@@ -19,13 +19,13 @@ readonly ARCHITECTURE="$(dpkg --print-architecture)"
 echo "Working in ${WORKDIR}"
 
 git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.orig.tar.gz" \
-    --prefix="${TARNAME}/" HEAD
+    --prefix="${NAME}/" HEAD
 cd "${WORKDIR}"
 tar xf "${TARNAME}.orig.tar.gz"
-cd "${TARNAME}"
-ln -s "packaging/debian" .
+cd "${NAME}"
+ln -s packaging/debian .
 
-debuild --no-tgz-check -uc -us -b
+debuild -uc -us -b
 
 cp "../${TARGET_NAME}_${VERSION}_${ARCHITECTURE}.deb" "${SRCDIR}"
 

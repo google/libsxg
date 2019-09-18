@@ -7,8 +7,8 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 override_dh_auto_configure:
 	dh_auto_configure -- -DSKIP_TEST=TRUE \
-	                     -DCMAKE_C_COMPILER=clang \
-	                     -DCMAKE_CXX_COMPILER=clang++ \
+	                     -DCMAKE_C_COMPILER=gcc \
+	                     -DCMAKE_CXX_COMPILER=g++ \
 	                     -DCMAKE_BUILD_TYPE=Release
 
 override_dh_auto_install:
