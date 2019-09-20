@@ -9,14 +9,13 @@
 set -ex
 
 readonly SRCDIR="${PWD}"
-readonly TARGET_DIR="${1}"
-readonly WORKDIR="$(mktemp -d --tmpdir=/tmp build_deb.XXXXXX)"
+readonly TARGET_DIR="${SRCDIR}/$1"
+readonly WORKDIR="$(mktemp -d --tmpdir build_deb.XXXXXX)"
 readonly NAME='libsxg'
 readonly VERSION='0.1'
 readonly TARNAME="${NAME}_${VERSION}"
 readonly TARGET_NAME='libsxg-dev'
 readonly ARCH="$(dpkg --print-architecture)"
-readonly RELEASE="$(lsb_release -cs)"
 
 echo "Working in ${WORKDIR}"
 
@@ -29,7 +28,7 @@ ln -s packaging/debian .
 
 debuild -uc -us -b
 
-cp ../*.deb \
-   "${SRCDIR}/${TARGET_DIR}/${TARGET_NAME}_${VERSION}_${ARCH}_${RELEASE}.deb"
+mkdir -p "${TARGET_DIR}"
+cp ../*.deb "${TARGET_DIR}"
 
 rm -rf "${WORKDIR}"
