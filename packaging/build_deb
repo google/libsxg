@@ -15,7 +15,6 @@ readonly NAME='libsxg'
 readonly VERSION='0.1'
 readonly TARNAME="${NAME}_${VERSION}"
 readonly TARGET_NAME='libsxg-dev'
-readonly ARCH="$(dpkg --print-architecture)"
 
 echo "Working in ${WORKDIR}"
 
@@ -30,5 +29,6 @@ debuild -uc -us -b
 
 mkdir -p "${DESTDIR}"
 cp ../*.deb "${DESTDIR}"
+cd ../..
 
 rm -rf "${WORKDIR}"

@@ -1,5 +1,5 @@
 Signed HTTP Exchange library
------------------
+----------------------------
 
 Signed HTTP Exchange (SXG) is file format which contains an HTTP exchange
 (request and response) signed by a publisher's origin.
