@@ -9,7 +9,7 @@
 set -ex
 
 readonly SRCDIR="${PWD}"
-readonly TARGET_DIR="${SRCDIR}/$1"
+readonly DESTDIR="${SRCDIR}/$1"
 readonly WORKDIR="$(mktemp -d --tmpdir build_deb.XXXXXX)"
 readonly NAME='libsxg'
 readonly VERSION='0.1'
@@ -28,7 +28,7 @@ ln -s packaging/debian .
 
 debuild -uc -us -b
 
-mkdir -p "${TARGET_DIR}"
-cp ../*.deb "${TARGET_DIR}"
+mkdir -p "${DESTDIR}"
+cp ../*.deb "${DESTDIR}"
 
 rm -rf "${WORKDIR}"
