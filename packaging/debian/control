@@ -10,7 +10,7 @@ Package: libsxg-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libssl-dev (>=1.1.1c), ${misc:Depends}
+Depends: libssl-dev (>=1.1.1), ${misc:Depends}
 Description: Signed HTTP Exchange library.
  Signed HTTP Exchange (SXG) is file format which contains an HTTP exchange
  (request and response) signed by a publisher's origin.
