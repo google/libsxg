@@ -71,8 +71,27 @@ target_include_directories(
 
 target_link_libraries(
   sxg
-  INTERFACE
+  PRIVATE
     ${OPENSSL_LIBRARIES}
+)
+
+add_executable(
+  gensxg
+    src/gensxg.c
+)
+
+target_include_directories(
+  gensxg
+  PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${OPENSSL_INCLUDE_DIR}
+)
+
+target_link_libraries(
+  gensxg
+  PRIVATE
+    ${OPENSSL_LIBRARIES}
+    sxg
 )
 
 ########################################
@@ -90,6 +109,10 @@ install (
   DIRECTORY ${CMAKE_SOURCE_DIR}/include/
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include
   FILES_MATCHING PATTERN "*.h*"
+)
+install (
+  TARGETS gensxg
+  RUNTIME DESTINATION bin
 )
 
 ########################################
