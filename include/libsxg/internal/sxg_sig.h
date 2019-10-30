@@ -27,15 +27,29 @@ extern "C" {
 
 // Represents SXG's signature header field values.
 typedef struct sxg_sig {
-  sxg_buffer_t name;
-  sxg_buffer_t cert_sha256;
-  sxg_buffer_t cert_url;
-  sxg_buffer_t ed25519key;
+  char* name;
+  size_t name_size;
+
+  uint8_t* cert_sha256;
+  size_t cert_sha256_size;
+
+  char* cert_url;
+  size_t cert_url_size;
+
+  uint8_t* ed25519key;
+  size_t ed25519key_size;
+
   uint64_t date;
   uint64_t expires;
-  sxg_buffer_t integrity;
-  sxg_buffer_t sig;
-  sxg_buffer_t validity_url;
+
+  char* integrity;
+  size_t integrity_size;
+
+  uint8_t* sig;
+  size_t sig_size;
+
+  char* validity_url;
+  size_t validity_url_size;
 } sxg_sig_t;
 
 // Initializes empty sxg_sig_t data structure. Never fails.
@@ -55,12 +69,15 @@ bool sxg_sig_set_validity_url(const char* validity_url, sxg_sig_t* sig);
 
 // Fills up sig member with initialized and given parameters and private key.
 // Returns true on success.
-bool sxg_sig_generate_sig(const char* fallback_url, const sxg_buffer_t* header,
-                          EVP_PKEY* pkey, sxg_sig_t* sig);
+bool sxg_sig_generate_sig(const char* fallback_url, const uint8_t* header,
+                          size_t header_size, EVP_PKEY* pkey, sxg_sig_t* sig);
+
+// Returns size of signature.
+size_t sxg_write_signature_size(const sxg_sig_t* sig);
 
 // Writes serialized contents of signature with Structured Header format.
-// Returns true on success.
-bool sxg_write_signature(const sxg_sig_t* sig, sxg_buffer_t* dst);
+// Returns actual wrote size.
+size_t sxg_write_signature(const sxg_sig_t* sig, uint8_t* dst);
 
 #ifdef __cplusplus
 }  // extern "C"

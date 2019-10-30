@@ -22,71 +22,116 @@
 
 #include "libsxg/internal/sxg_buffer.h"
 #include "libsxg/internal/sxg_codec.h"
+#include "libsxg/sxg_buffer.h"
 
 sxg_sig_t sxg_empty_sig() {
   static const sxg_sig_t sig = {
-      .name = {.data = NULL, .size = 0, .capacity = 0},
-      .cert_sha256 = {.data = NULL, .size = 0, .capacity = 0},
-      .cert_url = {.data = NULL, .size = 0, .capacity = 0},
-      .ed25519key = {.data = NULL, .size = 0, .capacity = 0},
+      .name = NULL,
+      .name_size = 0,
+      .cert_sha256 = NULL,
+      .cert_sha256_size = 0,
+      .cert_url = NULL,
+      .cert_url_size = 0,
+      .ed25519key = NULL,
+      .ed25519key_size = 0,
       .date = 0,
       .expires = 0,
-      .integrity = {.data = NULL, .size = 0, .capacity = 0},
-      .sig = {.data = NULL, .size = 0, .capacity = 0},
-      .validity_url = {.data = NULL, .size = 0, .capacity = 0}};
+      .integrity = NULL,
+      .integrity_size = 0,
+      .sig = NULL,
+      .sig_size = 0,
+  };
   return sig;
 }
 
 void sxg_sig_release(sxg_sig_t* target) {
-  sxg_buffer_release(&target->name);
-  sxg_buffer_release(&target->cert_sha256);
-  sxg_buffer_release(&target->cert_url);
-  sxg_buffer_release(&target->ed25519key);
+  OPENSSL_free(target->name);
+  target->name = NULL;
+  OPENSSL_free(target->cert_sha256);
+  target->cert_sha256 = NULL;
+  OPENSSL_free(target->cert_url);
+  target->cert_url = NULL;
+  OPENSSL_free(target->ed25519key);
+  target->ed25519key = NULL;
   target->date = 0;
   target->expires = 0;
-  sxg_buffer_release(&target->integrity);
-  sxg_buffer_release(&target->sig);
-  sxg_buffer_release(&target->validity_url);
+  OPENSSL_free(target->integrity);
+  target->integrity = NULL;
+  OPENSSL_free(target->sig);
+  target->sig = NULL;
+  OPENSSL_free(target->validity_url);
+  target->validity_url = NULL;
 }
 
 bool sxg_sig_set_name(const char* name, sxg_sig_t* sig) {
-  sxg_buffer_release(&sig->name);
-  return sxg_write_string(name, &sig->name);
+  sig->name_size = strlen(name);
+  sig->name = OPENSSL_realloc(sig->name, sig->name_size + 1);
+  if (sig->name == NULL) {
+    return false;
+  }
+  strcpy(sig->name, name);
+  return true;
 }
 
 bool sxg_sig_set_cert_sha256(X509* certificate, sxg_sig_t* sig) {
-  sxg_buffer_release(&sig->cert_sha256);
-  return sxg_calculate_cert_sha256(certificate, &sig->cert_sha256);
+  sig->cert_sha256_size = sxg_sha256_size();
+  sig->cert_sha256 = OPENSSL_realloc(sig->cert_sha256, sig->cert_sha256_size);
+  if (sig->cert_sha256 == NULL) {
+    return false;
+  }
+  return sxg_calculate_cert_sha256(certificate, sig->cert_sha256);
 }
 
 bool sxg_sig_set_cert_url(const char* cert_url, sxg_sig_t* sig) {
-  sxg_buffer_release(&sig->cert_url);
-  return sxg_write_string(cert_url, &sig->cert_url);
+  sig->cert_url_size = strlen(cert_url);
+  sig->cert_url = OPENSSL_realloc(sig->cert_url, sig->cert_url_size + 1);
+  if (sig->cert_url == NULL) {
+    return false;
+  }
+  strcpy(sig->cert_url, cert_url);
+  return true;
 }
 
 bool sxg_sig_set_ed25519key(const EVP_PKEY* public_key, sxg_sig_t* sig) {
-  sxg_buffer_release(&sig->ed25519key);
   size_t key_len;
-  return (EVP_PKEY_get_raw_public_key(public_key, NULL, &key_len) == 1) &&
-         sxg_buffer_resize(key_len, &sig->ed25519key) &&
-         (EVP_PKEY_get_raw_public_key(public_key, sig->ed25519key.data,
-                                      &key_len) == 1);
+  if (EVP_PKEY_get_raw_public_key(public_key, NULL, &key_len) != 1) {
+    return false;
+  }
+  sig->ed25519key = OPENSSL_realloc(sig->ed25519key, key_len);
+  if (sig->ed25519key == NULL) {
+    return false;
+  }
+  return EVP_PKEY_get_raw_public_key(public_key, sig->ed25519key, &key_len) ==
+         1;
 }
 
 bool sxg_sig_set_integrity(const char* integrity, sxg_sig_t* sig) {
-  sxg_buffer_release(&sig->integrity);
-  return sxg_write_string(integrity, &sig->integrity);
+  sig->integrity_size = strlen(integrity);
+  sig->integrity = OPENSSL_realloc(sig->integrity, sig->integrity_size + 1);
+  if (sig->integrity == NULL) {
+    return false;
+  }
+  strcpy(sig->integrity, integrity);
+  return true;
 }
 
 bool sxg_sig_set_validity_url(const char* validity_url, sxg_sig_t* sig) {
-  sxg_buffer_release(&sig->validity_url);
-  return sxg_write_string(validity_url, &sig->validity_url);
+  sig->validity_url_size = strlen(validity_url);
+  sig->validity_url =
+      OPENSSL_realloc(sig->validity_url, sig->validity_url_size + 1);
+  if (sig->validity_url == NULL) {
+    return false;
+  }
+  strcpy(sig->validity_url, validity_url);
+  return true;
 };
 
-bool sxg_sig_generate_sig(const char* fallback_url, const sxg_buffer_t* header,
-                          EVP_PKEY* private_key, sxg_sig_t* sig) {
-  if (sig->name.size == 0 || sig->integrity.size == 0 ||
-      sig->validity_url.size == 0) {
+bool sxg_sig_generate_sig(const char* fallback_url, const uint8_t* header,
+                          size_t header_size, EVP_PKEY* private_key,
+                          sxg_sig_t* sig) {
+  if (sig->name == NULL || sig->name_size == 0 || sig->integrity == NULL ||
+      sig->integrity_size == 0 || sig->validity_url == NULL ||
+      sig->validity_url_size == 0) {
     return false;
   }
 
@@ -111,18 +156,19 @@ bool sxg_sig_generate_sig(const char* fallback_url, const sxg_buffer_t* header,
 
   // 4.  If "cert-sha256" is set, a byte holding the value 32 followed by the 32
   // bytes of the value of "cert-sha256". Otherwise a 0 byte.
-  if (sig->cert_sha256.size == 0) {
+  if (sig->cert_sha256_size == 0) {
     success = success && sxg_write_byte(0, &message);
   } else {
-    success = success && sxg_write_byte(32, &message) &&
-              sxg_write_buffer(&sig->cert_sha256, &message);
+    success =
+        success && sxg_write_byte(32, &message) &&
+        sxg_write_bytes(sig->cert_sha256, sig->cert_sha256_size, &message);
   }
 
   // 5.  The 8-byte big-endian encoding of the length in bytes of
   // "validity-url", followed by the bytes of "validity-url".
-  success =
-      success && sxg_write_int(sig->validity_url.size, 8, &message) &&
-      sxg_write_bytes(sig->validity_url.data, sig->validity_url.size, &message);
+  success = success && sxg_write_int(sig->validity_url_size, 8, &message) &&
+            sxg_write_bytes((uint8_t*)sig->validity_url, sig->validity_url_size,
+                            &message);
 
   // 6.  The 8-byte big-endian encoding of "date".
   success = success && sxg_write_int(sig->date, 8, &message);
@@ -137,31 +183,57 @@ bool sxg_sig_generate_sig(const char* fallback_url, const sxg_buffer_t* header,
 
   // 9.  The 8-byte big-endian encoding of the length in bytes of
   // "responseHeaders", followed by the bytes of "responseHeaders".
-  success = success && sxg_write_int(header->size, 8, &message) &&
-            sxg_write_buffer(header, &message);
+  success = success && sxg_write_int(header_size, 8, &message) &&
+            sxg_write_bytes(header, header_size, &message);
 
   // Generate sigature of the message.
-  sxg_buffer_release(&sig->sig);
-  success = success && sxg_evp_sign(private_key, &message, &sig->sig);
+  sig->sig = OPENSSL_realloc(
+      sig->sig, sxg_evp_sign_size(private_key, message.data, message.size));
+
+  success = success && sig->sig != NULL;
+
+  sig->sig_size =
+      sxg_evp_sign(private_key, message.data, message.size, sig->sig);
+
+  success = success && sig->sig_size > 0;
   sxg_buffer_release(&message);
 
   return success;
 }
 
-static bool sxg_write_structured_header_binary(const sxg_buffer_t* binary,
-                                               sxg_buffer_t* target) {
-  return sxg_write_byte('*', target) && sxg_base64encode(binary, target) &&
-         sxg_write_byte('*', target);
+static size_t sxg_write_structured_header_binary_size(size_t size) {
+  return 1 + sxg_base64encode_size(size) + 1;
 }
 
-static bool sxg_write_structured_header_string(const sxg_buffer_t* string,
-                                               sxg_buffer_t* target) {
-  return sxg_write_byte('"', target) && sxg_write_buffer(string, target) &&
-         sxg_write_byte('"', target);
+static size_t sxg_write_structured_header_binary(const uint8_t* binary,
+                                                 size_t length,
+                                                 uint8_t* target) {
+  size_t wrote = 0;
+  memcpy(&target[wrote++], "*", 1);
+  if (!sxg_base64encode(binary, length, &target[wrote])) {
+    return false;
+  }
+  wrote += sxg_base64encode_size(length);
+  memcpy(&target[wrote++], "*", 1);
+  return wrote;
 }
 
-static bool sxg_write_structured_header_uint(uint64_t num,
-                                             sxg_buffer_t* target) {
+static size_t sxg_write_structured_header_string_size(size_t size) {
+  return 1 + size + 1;
+}
+
+static size_t sxg_write_structured_header_string(const char* string,
+                                                 size_t length,
+                                                 uint8_t* target) {
+  size_t wrote = 0;
+  memcpy(&target[wrote++], "\"", 1);
+  memcpy(&target[wrote], string, length);
+  wrote += length;
+  memcpy(&target[wrote++], "\"", 1);
+  return wrote;
+}
+
+static size_t sxg_write_structured_header_uint_size(uint64_t num) {
   char integer_buffer[22];
   const int nbytes =
       snprintf(integer_buffer, sizeof(integer_buffer), "%" PRIu64, num);
@@ -169,47 +241,119 @@ static bool sxg_write_structured_header_uint(uint64_t num,
   assert(nbytes > 0);
   assert((size_t)nbytes + 1 <= sizeof(integer_buffer));
 
-  return sxg_write_bytes((const uint8_t*)integer_buffer, nbytes, target);
+  return strlen(integer_buffer);
 }
 
-bool sxg_write_signature(const sxg_sig_t* sig, sxg_buffer_t* dst) {
-  if (sig->name.size == 0 || sig->integrity.size == 0 || sig->sig.size == 0 ||
-      sig->validity_url.size == 0) {
+static size_t sxg_write_structured_header_uint(uint64_t num, uint8_t* target) {
+  char integer_buffer[22];
+  const int nbytes =
+      snprintf(integer_buffer, sizeof(integer_buffer), "%" PRIu64, num);
+
+  assert(nbytes > 0);
+  assert((size_t)nbytes + 1 <= sizeof(integer_buffer));
+
+  memcpy(target, integer_buffer, nbytes);
+  return nbytes;
+}
+
+size_t sxg_write_signature(const sxg_sig_t* const sig, uint8_t* dst) {
+  if (sig->name_size == 0 || sig->integrity_size == 0 || sig->sig_size == 0 ||
+      sig->validity_url_size == 0) {
     return false;
   }
 
-  bool success = sxg_write_buffer(&sig->name, dst) && sxg_write_byte(';', dst);
+  size_t wrote = 0;
+  memcpy(&dst[wrote], sig->name, sig->name_size);
+  wrote += sig->name_size;
+  memcpy(&dst[wrote++], ";", 1);
 
-  if (sig->cert_sha256.size != 0) {
-    success = success && sxg_write_string("cert-sha256=", dst) &&
-              sxg_write_structured_header_binary(&sig->cert_sha256, dst) &&
-              sxg_write_byte(';', dst);
+  if (sig->cert_sha256_size != 0) {
+    strcpy((char*)&dst[wrote], "cert-sha256=");
+    wrote += strlen("cert-sha256=");
+    wrote += sxg_write_structured_header_binary(
+        sig->cert_sha256, sig->cert_sha256_size, &dst[wrote]);
+    memcpy(&dst[wrote++], ";", 1);
 
-    success = success && sxg_write_string("cert-url=", dst) &&
-              sxg_write_structured_header_string(&sig->cert_url, dst) &&
-              sxg_write_byte(';', dst);
-  } else if (sig->ed25519key.size != 0) {
-    success = success && sxg_write_string("ed25519key=", dst) &&
-              sxg_write_structured_header_binary(&sig->ed25519key, dst) &&
-              sxg_write_byte(';', dst);
+    strcpy((char*)&dst[wrote], "cert-url=");
+    wrote += strlen("cert-url=");
+    wrote += sxg_write_structured_header_string(
+        sig->cert_url, sig->cert_url_size, &dst[wrote]);
+    memcpy(&dst[wrote++], ";", 1);
+  } else if (sig->ed25519key_size != 0) {
+    strcpy((char*)&dst[wrote], "ed25519key=");
+    wrote += strlen("cert-url=");
+    wrote += sxg_write_structured_header_binary(
+        sig->ed25519key, sig->ed25519key_size, &dst[wrote]);
+    memcpy(&dst[wrote++], ";", 1);
   }
 
-  success = success && sxg_write_string("date=", dst) &&
-            sxg_write_structured_header_uint(sig->date, dst) &&
-            sxg_write_byte(';', dst);
+  strcpy((char*)&dst[wrote], "date=");
+  wrote += strlen("date=");
+  wrote += sxg_write_structured_header_uint(sig->date, &dst[wrote]);
+  memcpy(&dst[wrote++], ";", 1);
 
-  success = success && sxg_write_string("expires=", dst) &&
-            sxg_write_structured_header_uint(sig->expires, dst) &&
-            sxg_write_byte(';', dst);
+  strcpy((char*)&dst[wrote], "expires=");
+  wrote += strlen("expires=");
+  wrote += sxg_write_structured_header_uint(sig->expires, &dst[wrote]);
+  memcpy(&dst[wrote++], ";", 1);
 
-  success = success && sxg_write_string("integrity=", dst) &&
-            sxg_write_structured_header_string(&sig->integrity, dst) &&
-            sxg_write_byte(';', dst);
+  strcpy((char*)&dst[wrote], "integrity=");
+  wrote += strlen("integrity=");
+  wrote += sxg_write_structured_header_string(sig->integrity,
+                                              sig->integrity_size, &dst[wrote]);
+  memcpy(&dst[wrote++], ";", 1);
 
-  success = success && sxg_write_string("sig=", dst) &&
-            sxg_write_structured_header_binary(&sig->sig, dst) &&
-            sxg_write_byte(';', dst);
+  strcpy((char*)&dst[wrote], "sig=");
+  wrote += strlen("sig=");
+  wrote +=
+      sxg_write_structured_header_binary(sig->sig, sig->sig_size, &dst[wrote]);
+  memcpy(&dst[wrote++], ";", 1);
 
-  return success && sxg_write_string("validity-url=", dst) &&
-         sxg_write_structured_header_string(&sig->validity_url, dst);
+  strcpy((char*)&dst[wrote], "validity-url=");
+  wrote += strlen("validity-url=");
+  wrote += sxg_write_structured_header_string(
+      sig->validity_url, sig->validity_url_size, &dst[wrote]);
+
+  return wrote;
+}
+
+size_t sxg_write_signature_size(const sxg_sig_t* sig) {
+  if (sig->name_size == 0 || sig->integrity_size == 0 || sig->sig_size == 0 ||
+      sig->validity_url_size == 0) {
+    return 0;
+  }
+  size_t estimated_size = sig->name_size + 1;
+
+  if (sig->cert_sha256_size != 0) {
+    estimated_size += strlen("cert-sha256=");
+    estimated_size +=
+        sxg_write_structured_header_binary_size(sig->cert_sha256_size) + 1;
+
+    estimated_size += strlen("cert-url=");
+    estimated_size +=
+        sxg_write_structured_header_string_size(sig->cert_url_size) + 1;
+  } else if (sig->ed25519key_size != 0) {
+    estimated_size += strlen("ed25519key=");
+    estimated_size +=
+        sxg_write_structured_header_binary_size(sig->ed25519key_size) + 1;
+  }
+
+  estimated_size += strlen("date=");
+  estimated_size += sxg_write_structured_header_uint_size(sig->date) + 1;
+
+  estimated_size += strlen("expires=");
+  estimated_size += sxg_write_structured_header_uint_size(sig->expires) + 1;
+
+  estimated_size += strlen("integrity=");
+  estimated_size +=
+      sxg_write_structured_header_string_size(sig->integrity_size) + 1;
+
+  estimated_size += strlen("sig=");
+  estimated_size += sxg_write_structured_header_binary_size(sig->sig_size) + 1;
+
+  estimated_size += strlen("validity-url=");
+  estimated_size +=
+      sxg_write_structured_header_string_size(sig->validity_url_size);
+
+  return estimated_size;
 }

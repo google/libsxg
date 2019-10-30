@@ -30,9 +30,29 @@ bool sxg_ensure_free_capacity_internal(size_t size, size_t desired_margin,
                                        size_t item_size, size_t* capacity,
                                        void** buffer);
 
+bool sxg_ensure_buffer_free_capacity(size_t desired_margin,
+                                     sxg_buffer_t* target);
+
 // Appends an integer in big-endian format with nbytes. nbytes must be in the
 // range from 1 to 8. Returns true on success.
 bool sxg_write_int(uint64_t num, int nbytes, sxg_buffer_t* target);
+
+// Returns serialized cbor header's size.
+size_t sxg_cbor_bytes_header_serialized_size(size_t size);
+
+// Returns cbor buffer size prefix.
+uint8_t sxg_cbor_bytes_header_prefix(size_t size);
+
+// Appends the magic header for a byte string (for internal use).
+// Returns true on success.
+bool sxg_write_cbor_header(size_t length, sxg_buffer_t* target);
+
+// Write integer in big endian order to specified buffer.
+void sxg_serialize_int(uint64_t num, int nbytes, uint8_t* dest);
+
+// Appends a byte string encoded in CBOR. Returns true on success.
+bool sxg_write_bytes_cbor(const uint8_t* bytes, size_t length,
+                          sxg_buffer_t* target);
 
 // Prints the content of the buffer to stdout in a hexdump-like format.
 void sxg_buffer_dump(const sxg_buffer_t* target);

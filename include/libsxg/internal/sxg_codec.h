@@ -21,35 +21,45 @@
 #include <openssl/sha.h>
 #include <stdbool.h>
 
-#include "libsxg/sxg_buffer.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Replaces contents of `dst` with SHA-hash of `src`. Returns true on success.
-bool sxg_calc_sha256(const sxg_buffer_t* src, sxg_buffer_t* dst);
-bool sxg_calc_sha384(const sxg_buffer_t* src, sxg_buffer_t* dst);
+// Returns size of expected digest length (fixed).
+inline size_t sxg_sha256_size() { return SHA256_DIGEST_LENGTH; }
+inline size_t sxg_sha384_size() { return SHA384_DIGEST_LENGTH; }
 
-// Appends base64 of `src` to `dst`. Returns true on success.
-bool sxg_base64encode(const sxg_buffer_t* src, sxg_buffer_t* dst);
+// Writes SHA-hash of `src` into `dst`. Returns true on success.
+bool sxg_sha256(const uint8_t* src, size_t length, uint8_t* dst);
+bool sxg_sha384(const uint8_t* src, size_t length, uint8_t* dst);
 
-// Appends base64 of byte array to `dst`. Returns true on success.
-bool sxg_base64encode_bytes(const uint8_t* src, size_t length,
-                            sxg_buffer_t* dst);
+// Returns size of expected buffer length to input size.
+size_t sxg_base64encode_size(const size_t length);
 
-// Replaces `encoded` and `proof` with Merkle Integrity Content Encoding(MICE)
+// Writes base64 of byte array to `dst`. Returns true on success.
+bool sxg_base64encode(const uint8_t* src, size_t length, uint8_t* dst);
+
+size_t sxg_mi_sha256_size(const size_t length, const uint64_t record_size);
+
+size_t sxg_mi_sha256_remainder_size(size_t size, uint64_t record_size);
+
+// Writes `encoded` and `proof` with Merkle Integrity Content Encoding(MICE)
 // of `src`. Returns true on success.
-bool sxg_encode_mi_sha256(const sxg_buffer_t* src, uint64_t record_size,
-                          sxg_buffer_t* encoded,
+bool sxg_encode_mi_sha256(const uint8_t* src, size_t size, uint64_t record_size,
+                          uint8_t* encoded,
                           uint8_t proof[SHA256_DIGEST_LENGTH]);
 
 // Replaces `dst` with SHA256 of `cert`. Returns true on success.
-bool sxg_calculate_cert_sha256(X509* cert, sxg_buffer_t* dst);
+bool sxg_calculate_cert_sha256(X509* cert, uint8_t* dst);
 
-// Replaces `dst` with signature of `src`. Returns true on success.
-bool sxg_evp_sign(EVP_PKEY* private_key, const sxg_buffer_t* src,
-                  sxg_buffer_t* dst);
+// Returns size of expected buffer length for evp sign.
+size_t sxg_evp_sign_size(EVP_PKEY* private_key, const uint8_t* src,
+                         size_t length);
+
+// Replaces `dst` with signature of `src`. Returns the size of signature on
+// success.
+size_t sxg_evp_sign(EVP_PKEY* private_key, const uint8_t* src, size_t length,
+                    uint8_t* dst);
 
 #ifdef __cplusplus
 }  // extern "C"

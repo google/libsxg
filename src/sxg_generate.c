@@ -52,9 +52,11 @@ static bool write_signature(const sxg_signer_t* signer,
       break;
   }
   success = success &&
-            sxg_sig_generate_sig(fallback_url, serialized_headers,
-                                 signer->private_key, &sig) &&
-            sxg_write_signature(&sig, dst);
+            sxg_sig_generate_sig(fallback_url, serialized_headers->data,
+                                 serialized_headers->size, signer->private_key,
+                                 &sig) &&
+            sxg_buffer_resize(sxg_write_signature_size(&sig), dst);
+  sxg_write_signature(&sig, dst->data);
 
   sxg_sig_release(&sig);
   return success;

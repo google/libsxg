@@ -37,7 +37,8 @@ TEST(SxgCodecTest, Sha256) {
       "\x2c\x26\xb4\x6b\x68\xff\xc6\x8f\xf9\x9b\x45\x3c\x1d\x30\x41\x34\x13\x42"
       "\x2d\x70\x64\x83\xbf\xa0\xf9\x8a\x5e\x88\x62\x66\xe7\xae");
 
-  EXPECT_TRUE(sxg_calc_sha256(&in, &out));
+  EXPECT_TRUE(sxg_buffer_resize(sxg_sha256_size(), &out));
+  EXPECT_TRUE(sxg_sha256(in.data, in.size, out.data));
   EXPECT_EQ(expected, BufferToString(out));
 
   sxg_buffer_release(&in);
@@ -52,7 +53,8 @@ TEST(SxgCodecTest, Sha384) {
       "\x0c\x9a\x44\x17\x1d\x6b\x11\x80\xc6\xbe\x5c\xbb\x2e\xe3\xf7\x9d\x53\x2c"
       "\x8a\x1d\xd9\xef\x2e\x8e\x08\xe7\x52\xa3\xba\xbb");
 
-  EXPECT_TRUE(sxg_calc_sha384(&in, &out));
+  EXPECT_TRUE(sxg_buffer_resize(sxg_sha384_size(), &out));
+  EXPECT_TRUE(sxg_sha384(in.data, in.size, out.data));
   EXPECT_EQ(expected, BufferToString(out));
 
   sxg_buffer_release(&in);
@@ -62,7 +64,8 @@ TEST(SxgCodecTest, Sha384) {
 TEST(SxgCodecTest, Base64) {
   sxg_buffer_t input = StringToBuffer("hello");
   sxg_buffer_t base64 = sxg_empty_buffer();
-  sxg_base64encode(&input, &base64);
+  sxg_buffer_resize(sxg_base64encode_size(input.size), &base64);
+  sxg_base64encode(input.data, input.size, base64.data);
 
   EXPECT_EQ("aGVsbG8=", BufferToString(base64));
 
@@ -73,7 +76,8 @@ TEST(SxgCodecTest, Base64) {
 TEST(SxgCodecTest, Base64BreakLine) {
   sxg_buffer_t input = StringToBuffer("\n");
   sxg_buffer_t base64 = sxg_empty_buffer();
-  sxg_base64encode(&input, &base64);
+  sxg_buffer_resize(sxg_base64encode_size(input.size), &base64);
+  sxg_base64encode(input.data, input.size, base64.data);
 
   EXPECT_EQ("Cg==", BufferToString(base64));
 
@@ -91,8 +95,11 @@ TEST(SxgCodecTest, SHA256Base64) {
   sxg_write_int(0, 1, &input);
   std::string expected("dcRDgR2GM35DluAV13PzgnG6+pvQwPywfFvAu1UeFrs=");
 
-  EXPECT_TRUE(sxg_calc_sha256(&input, &digest));
-  EXPECT_TRUE(sxg_base64encode(&digest, &base64_digest));
+  EXPECT_TRUE(sxg_buffer_resize(sxg_sha256_size(), &digest));
+  EXPECT_TRUE(sxg_sha256(input.data, input.size, digest.data));
+  EXPECT_TRUE(
+      sxg_buffer_resize(sxg_base64encode_size(digest.size), &base64_digest));
+  EXPECT_TRUE(sxg_base64encode(digest.data, digest.size, base64_digest.data));
   EXPECT_EQ(expected, BufferToString(base64_digest));
 
   sxg_buffer_release(&digest);
@@ -103,15 +110,21 @@ TEST(SxgCodecTest, SHA256Base64) {
 TEST(SxgCodecTest, mi_sha_zero_length) {
   // Example from
   // https://tools.ietf.org/html/draft-thomson-http-mice-03#section-2.2
+  const size_t kRecordSize = 256;
   sxg_buffer_t input = sxg_empty_buffer();
   sxg_buffer_t encoded = sxg_empty_buffer();
   uint8_t digest[SHA256_DIGEST_LENGTH];
   sxg_buffer_t base64 = sxg_empty_buffer();
   const std::string expected("bjQLnP+zepicpUTmu3gKLHiQHT+zNzh2hRGjBhevoB0=");
 
-  EXPECT_TRUE(sxg_encode_mi_sha256(&input, 256, &encoded, digest));
+  EXPECT_TRUE(
+      sxg_buffer_resize(sxg_mi_sha256_size(input.size, kRecordSize), &encoded));
+  EXPECT_TRUE(sxg_encode_mi_sha256(input.data, input.size, kRecordSize,
+                                   encoded.data, digest));
   EXPECT_EQ(0u, encoded.size);  // Must be 0-length.
-  EXPECT_TRUE(sxg_base64encode_bytes(digest, SHA256_DIGEST_LENGTH, &base64));
+  EXPECT_TRUE(
+      sxg_buffer_resize(sxg_base64encode_size(SHA256_DIGEST_LENGTH), &base64));
+  EXPECT_TRUE(sxg_base64encode(digest, SHA256_DIGEST_LENGTH, base64.data));
   EXPECT_EQ(expected, BufferToString(base64));
 
   sxg_buffer_release(&base64);
@@ -122,6 +135,7 @@ TEST(SxgCodecTest, mi_sha_zero_length) {
 TEST(SxgCodecTest, MiceOneChunk) {
   // Example from
   // https://tools.ietf.org/html/draft-thomson-http-mice-03#section-4.1
+  const size_t kRecordSize = 255;
   sxg_buffer_t input =
       StringToBuffer("When I grow up, I want to be a watermelon");
   sxg_buffer_t encoded = sxg_empty_buffer();
@@ -134,9 +148,17 @@ TEST(SxgCodecTest, MiceOneChunk) {
       "When I grow up, I want to be a watermelon",
       49);
 
-  EXPECT_TRUE(sxg_encode_mi_sha256(&input, 255, &encoded, digest));
-  EXPECT_TRUE(sxg_base64encode_bytes(digest, SHA256_DIGEST_LENGTH, &base64));
+  EXPECT_TRUE(
+      sxg_buffer_resize(sxg_mi_sha256_size(input.size, kRecordSize), &encoded));
+  EXPECT_EQ(expected_payload.size(), encoded.size);
+  EXPECT_TRUE(sxg_encode_mi_sha256(input.data, input.size, kRecordSize,
+                                   encoded.data, digest));
+  EXPECT_TRUE(
+      sxg_buffer_resize(sxg_base64encode_size(SHA256_DIGEST_LENGTH), &base64));
+  EXPECT_EQ(expected_digest.size(), base64.size);
+  EXPECT_TRUE(sxg_base64encode(digest, SHA256_DIGEST_LENGTH, base64.data));
   EXPECT_EQ(expected_digest, BufferToString(base64));
+
   EXPECT_EQ(expected_payload, BufferToString(encoded));
 
   sxg_buffer_release(&base64);
@@ -147,6 +169,7 @@ TEST(SxgCodecTest, MiceOneChunk) {
 TEST(SxgCodecTest, MiceMultiChunks) {
   // Example from
   // https://tools.ietf.org/html/draft-thomson-http-mice-03#section-4.2
+  const size_t kRecordSize = 16;
   const char origin[] = "When I grow up, I want to be a watermelon";
   sxg_buffer_t input = StringToBuffer(origin);
   sxg_buffer_t encoded = sxg_empty_buffer();
@@ -165,8 +188,13 @@ TEST(SxgCodecTest, MiceMultiChunks) {
       "atermelon",
       113);
 
-  EXPECT_TRUE(sxg_encode_mi_sha256(&input, 16, &encoded, digest));
-  EXPECT_TRUE(sxg_base64encode_bytes(digest, SHA256_DIGEST_LENGTH, &base64));
+  EXPECT_TRUE(
+      sxg_buffer_resize(sxg_mi_sha256_size(input.size, kRecordSize), &encoded));
+  EXPECT_TRUE(sxg_encode_mi_sha256(input.data, input.size, kRecordSize,
+                                   encoded.data, digest));
+  EXPECT_TRUE(
+      sxg_buffer_resize(sxg_base64encode_size(SHA256_DIGEST_LENGTH), &base64));
+  EXPECT_TRUE(sxg_base64encode(digest, SHA256_DIGEST_LENGTH, base64.data));
   EXPECT_EQ(expected_digest, BufferToString(base64));
   EXPECT_EQ(expected_payload, BufferToString(encoded));
 
@@ -181,7 +209,12 @@ TEST(SxgCodecTest, EvpSign) {
   sxg_buffer_t input = StringToBuffer("aaaa");
   sxg_buffer_t output = sxg_empty_buffer();
 
-  EXPECT_TRUE(sxg_evp_sign(private_key, &input, &output));
+  EXPECT_TRUE(sxg_buffer_resize(
+      sxg_evp_sign_size(private_key, input.data, input.size), &output));
+  size_t sig_size =
+      sxg_evp_sign(private_key, input.data, input.size, output.data);
+  EXPECT_LT(0u, sig_size);
+  EXPECT_TRUE(sxg_buffer_resize(sig_size, &output));
 
   EVP_MD_CTX* const mdctx = EVP_MD_CTX_new();
   ASSERT_NE(nullptr, mdctx);
