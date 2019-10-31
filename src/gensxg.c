@@ -14,6 +14,7 @@
 
 static const struct option kOptions[] = {
   { "help",         no_argument,       NULL, 'h' },
+  { "integrity",    no_argument,       NULL, 'i' },
   { "content",      required_argument, NULL, 'c' },
   { "contentType",  required_argument, NULL, 't' },
   { "header",       required_argument, NULL, 'H' },
@@ -35,6 +36,9 @@ static const char kHelpMessage[] =
     "OPTIONS:\n"
     "-help\n"
     "  Show this message.\n"
+    "-integrity\n"
+    "  Output integrity hash value only instead of the SXG. "
+    "Set <integrity hash only mode>.\n"
     "-content string\n"
     "  Source to be used as payload of the SXG (default [./index.html]).\n"
     "-contentType string\n"
@@ -47,6 +51,9 @@ static const char kHelpMessage[] =
     "-miRecordSize int\n"
     "  The record size of Merkle Integrity Content Encoding. "
     "(default [4096])\n"
+    "\n"
+    "The options below are not applicable to <integrity hash only mode>.\n"
+    "\n"
     "-url string\n"
     "  The URI of the resource represented in the SXG file. (required)\n"
     "-certUrl string\n"
@@ -70,6 +77,7 @@ static const char kHelpMessage[] =
 
 typedef struct {
   bool help;
+  bool integrity_mode;
   const char* content;
   const char* content_type;
   sxg_header_t header;
@@ -190,6 +198,9 @@ static Options parse_options(int argc, char* const argv[]) {
       case 'h':
         result.help = true;
         return result;
+      case 'i':
+        result.integrity_mode = true;
+        break;
       case 'c':
         result.content = optarg;
         break;
@@ -228,7 +239,6 @@ static Options parse_options(int argc, char* const argv[]) {
         expires = parse_time(optarg);
         break;
       default:
-        fprintf(stderr, "unknown option %c\n", opt);
         exit(EXIT_FAILURE);
     }
   }
@@ -243,9 +253,8 @@ static bool is_empty(const char* str) {
   return str == NULL || *str == '\0';
 }
 
-static bool validate(const Options* opt) {
+static bool validate_common_options(const Options* opt) {
   bool valid = true;
-  
   if (opt->content == NULL) {
     fputs("error: -content must be specified.\n", stderr);
     valid = false;
@@ -257,6 +266,11 @@ static bool validate(const Options* opt) {
     fputs("error: -miRecordSize must be greater than 0.\n", stderr);
     valid = false;
   }
+  return valid;
+}
+
+static bool validate_generator_options(const Options* opt) {
+  bool valid = true;
   if (is_empty(opt->url)) {
     fputs("error: -url must not be empty.\n", stderr);
     valid = false;
@@ -309,6 +323,14 @@ static bool validate(const Options* opt) {
   if (opt->duration > 60 * 60 * 24 * 7) {
     fputs("error: SXG lifespan must not exceed 7 days.\n", stderr);
     valid = false;
+  }
+  return valid;
+}
+
+static bool validate(const Options* opt) {
+  bool valid = validate_common_options(opt);
+  if (!opt->integrity_mode) {
+    valid = valid & validate_generator_options(opt);
   }
   return valid;
 }
@@ -369,6 +391,7 @@ static void print_help() {
 
 static void dump_options(const Options* opt) {
   fprintf(stderr, "Input arguments:\n");
+  fprintf(stderr, " integrity: %s\n", opt->integrity_mode ? "true" : "false");
   fprintf(stderr, " content: %s\n", opt->content);
   fprintf(stderr, " contentType: %s\n", opt->content_type);
   fprintf(stderr, " miRecordSize: %ld\n", opt->mi_record_size);
@@ -394,6 +417,61 @@ static void dump_options(const Options* opt) {
   fprintf(stderr, " expire: %ld\n", opt->date + opt->duration);
 }
 
+sxg_encoded_response_t get_encoded_response(const Options* opt) {
+  sxg_raw_response_t raw = sxg_empty_raw_response();
+  sxg_header_copy(&opt->header, &raw.header);
+  load_content(opt->content, &raw.payload);
+  if (!sxg_header_append_string("content-type", opt->content_type,
+                                &raw.header)) {
+    fputs("Failed to append content-type header.\n", stderr);
+    exit(EXIT_FAILURE);
+  }
+  sxg_encoded_response_t encoded = sxg_empty_encoded_response();
+  if (!sxg_encode_response(opt->mi_record_size, &raw, &encoded)) {
+    fputs("Failed to encode content.\n", stderr);
+    exit(EXIT_FAILURE);
+  }
+  sxg_raw_response_release(&raw);
+  return encoded;
+}
+
+static void print_integrity_hash(const sxg_encoded_response_t* encoded) {
+  sxg_buffer_t integrity = sxg_empty_buffer();
+  if (!sxg_write_header_integrity(encoded, &integrity)) {
+    fputs("Failed to calculate integrity hash.\n", stderr);
+    exit(EXIT_FAILURE);
+  }
+  size_t written =
+      fwrite(integrity.data, sizeof(uint8_t), integrity.size, stdout);
+  if (written != integrity.size) {
+    perror("fwrite stdout");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void print_sxg(const sxg_signer_list_t* signers,
+               const char* url,
+               sxg_encoded_response_t* encoded) {
+  sxg_buffer_t result = sxg_empty_buffer();
+  if (!sxg_generate(url, signers, encoded, &result)) {
+    fputs("Failed to generate SXG.\n", stderr);
+    exit(EXIT_FAILURE);
+  }
+    
+  if (freopen(NULL, "wb", stdout) == NULL) {
+    perror("reopen stdout");
+    exit(EXIT_FAILURE);
+  }
+
+  size_t written = fwrite(result.data, sizeof(uint8_t), result.size, stdout);
+  if (written != result.size) {
+    perror("fwrite stdout");
+    exit(EXIT_FAILURE);
+  }
+
+  sxg_buffer_release(&result);
+}
+
 int main(int argc, char* const argv[]) {
   Options opt = parse_options(argc, argv);
   if (opt.help) {
@@ -406,46 +484,18 @@ int main(int argc, char* const argv[]) {
     return 1;
   }
   
-  sxg_raw_response_t content = sxg_empty_raw_response();;
-  sxg_header_copy(&opt.header, &content.header);
-  load_content(opt.content, &content.payload);
-  if (!sxg_header_append_string("content-type", opt.content_type,
-                                &content.header)) {
-    fputs("Failed to append content-type header.\n", stderr);
-    return 1;
-  }
-  
-  sxg_encoded_response_t encoded = sxg_empty_encoded_response();
-  if (!sxg_encode_response(opt.mi_record_size, &content, &encoded)) {
-    fputs("Failed to encode content.\n", stderr);
-    return 1;
-  }
+  sxg_encoded_response_t encoded = get_encoded_response(&opt);
 
-  sxg_signer_list_t signers = sxg_empty_signer_list();;
-  load_signer(&opt, &signers);
-  
-  sxg_buffer_t result = sxg_empty_buffer();
-  if (!sxg_generate(opt.url, &signers, &encoded, &result)) {
-    fputs("Failed to generate SXG.\n", stderr);
-    return 1;
-  }
-    
-  if (freopen(NULL, "wb", stdout) == NULL) {
-    perror("reopen stdout");
-    return 1;
-  }
-
-  size_t written = fwrite(result.data, sizeof(uint8_t), result.size, stdout);
-  if (written != result.size) {
-    perror("fwrite stdout");
-    return 1;
+  if (opt.integrity_mode) {
+    print_integrity_hash(&encoded);
+  } else {
+    sxg_signer_list_t signers = sxg_empty_signer_list();
+    load_signer(&opt, &signers);
+    print_sxg(&signers, opt.url, &encoded);
+    sxg_signer_list_release(&signers);
   }
 
   sxg_header_release(&opt.header);
-  sxg_signer_list_release(&signers);
-  sxg_buffer_release(&result);
-
-  sxg_raw_response_release(&content);
   sxg_encoded_response_release(&encoded);
   return 0;
 }

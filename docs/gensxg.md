@@ -16,14 +16,41 @@ $ gensxg -url https://example.com \
     > myFile.html.sxg
 ```
 
+Calculate integrity hash value of some file.
+
+```bash
+$ gensxg -ingegrity \
+         -content ./logo.png
+         -contentType image/png
+    > logo-integrity
+```
+
+SXG with subresource integrity.
+
+```bash
+$ gensxg -url https://example.com \
+         -certUrl https://example.com/cert.cbor \
+         -validityUrl https://example.com/validity.msg \
+         -certificate ./prime256v1.pem \
+         -privateKey ./prime256v1.key \
+         -header "link: <https://example.com/logo.png>;rel=\"allowed-alt-sxg\";header-integrity=\"`gensxg -integrity -content ./logo.png -contentType image/png`\"" \
+         -header "link: <https://example.com/logo.png>;rel=\"preload\";as=\"image\"" \
+         -content ./myFile.html
+    > myFile.html.sxg
+```
+
 # Options
 
 - `-help`:                 Show help message.
+- `-integrity`:            Output integrity hash value only instead of the SXG. Set <integrity hash only mode>.
 - `-content` _string_:     Source file to be used as SXG payload (default `./index.html`).
 - `-contentType` _string_: Mime type of Source file (default `text/html`).
 - `-header` _string_:      HTTP response header. You can use this option multiple times.
                            Content-Type should be specified by `-contentType` option above (optional).
 - `-miRecordSize` _int_:   The record size of Merkle Integrity Content Encoding. (default `4096`)
+
+The options below are not applicable to <integrity hash only mode>.
+
 - `-url` _string_:         The URI of the resource represented in the SXG file. (required)
 - `-certUrl` _string_:     The URI of certificate cbor file published. (required)
 - `-validityUrl` _string_: The URI of validity information provided. (required)
