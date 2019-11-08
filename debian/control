@@ -6,7 +6,7 @@ Build-Depends:
          cmake,
          ronn,
          libssl-dev,
-Standards-Version: 4.1.3
+Standards-Version: 4.3.0
 Section: libs
 Vcs-Git: https://github.com/google/libsxg.git
 Vcs-Browser: https://github.com/google/libsxg
@@ -20,7 +20,7 @@ Depends: libssl1.1 (>=1.1.1),
          ${misc:Depends},
          ${shlibs:Depends}
 Pre-Depends: ${misc:Pre-Depends}
-Description: Signed HTTP Exchange library.
+Description: Signed HTTP Exchange library
  Signed HTTP Exchange (SXG) is file format which contains an HTTP exchange
  (request and response) signed by a publisher's origin.
  https://tools.ietf.org/html/draft-yasskin-http-origin-signed-responses-06
@@ -34,16 +34,17 @@ Multi-Arch: same
 Depends: libssl-dev (>=1.1.1),
          libsxg0.1 (= ${binary:Version}),
          ${misc:Depends}
-Description: Development files for Signed HTTP Exchange library.
+Description: Development files for Signed HTTP Exchange library
  With development files, you can build your own SXG applications.
 
 Package: sxg-util
 Section: web
 Architecture: any
 Multi-Arch: foreign
-Depends: libssl1.1       (>=1.1.1),
+Depends: libssl1.1 (>=1.1.1),
          libsxg0.1 (= ${binary:Version}),
          ${misc:Depends},
-         ${shlibs:Depends} 
-Description: Signed HTTP Exchange utilities to manipurate SXG files.
+         ${shlibs:Depends}
+Description: Signed HTTP Exchange utilities to manipurate SXG files
  gensxg enables you to generate SXG file on command line.
+ You need SXG certificate and private key to generate proper SXG file.
