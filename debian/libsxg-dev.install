@@ -1,0 +1,4 @@
+usr/lib/*/libsxg.so
+usr/include/libsxg.h
+usr/include/libsxg/*
+usr/include/libsxg/internal/*
