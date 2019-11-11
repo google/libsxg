@@ -122,7 +122,7 @@ Copies the string parameters and increments the reference count of `private_key`
 - `expires` : Unix time of SXG expiration time.
 - `validity_url` : Validity URL to be embedded into SXG. Must be null terminated. Will be deep copied.
 - `private_key` : ECDSA private key to be used for generating signature. Reference count will be incremented.
-- `public_key` : X509 certificate correspoindings to the `private_key`. Reference count will be incremented.
+- `public_key` : X509 certificate corresponding to the `private_key`. Reference count will be incremented.
 - `certificate_url` : URL for distributing CBOR file of the public_key. Will be deep copied.
 - `target` : Signer list to be modified.
 

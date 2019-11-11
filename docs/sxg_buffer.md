@@ -263,14 +263,14 @@ sxg_buffer_release(&world);
 
 ### bool sxg\_write\_int(uint64\_t num, int nbytes, sxg\_buffer\_t\* target)
 
-Appends an integer in big-endian format with byte syze `nbytes`.
+Appends an integer in big-endian format with byte size `nbytes`.
 nbytes must be in the range from 1 to 8.
 
 #### Arguments
 
 - `num` : Number to write.
 - `nbytes` : Length of big-endian encoded number to write in bytes.
-- `trarget` : Buffer to be modified.
+- `target` : Buffer to be modified.
 
 #### Returns.
 
