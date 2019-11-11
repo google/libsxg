@@ -38,6 +38,7 @@ See [docs](docs/OVERVIEW.md).
 #include <assert.h>
 #include <libsxg.h>
 #include <openssl/crypto.h>
+#include <openssl/pem.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
