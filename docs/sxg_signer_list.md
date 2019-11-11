@@ -79,7 +79,7 @@ Nothing.
 
 #### Returns
 
-Emty `sxg_signer_list_t` structure with zero size and zero capacity.
+Empty `sxg_signer_list_t` structure with zero size and zero capacity.
 
 #### Example
 
