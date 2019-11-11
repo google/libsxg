@@ -33,7 +33,7 @@ sxg_buffer_t StringToBuffer(const char* src) {
 }
 
 std::string BufferToString(const sxg_buffer_t& buf) {
-  return std::string(reinterpret_cast<char* const>(buf.data), buf.size);
+  return std::string(reinterpret_cast<const char*>(buf.data), buf.size);
 }
 
 TEST(SxgCodecTest, Sha256) {
