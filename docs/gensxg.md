@@ -19,7 +19,7 @@ $ gensxg -url https://example.com \
 Calculate integrity hash value of some file.
 
 ```bash
-$ gensxg -ingegrity \
+$ gensxg -integrity \
          -content ./logo.png
          -contentType image/png
     > logo-integrity

@@ -10,7 +10,7 @@ Writes SXG payload to dst.
 
 #### Arguments
 
-- `fallback_url`: An URL which this SXG reporesents for.
+- `fallback_url`: An URL which this SXG represents for.
 - `signers`: Signers list to embed signatures to SXG.
 - `resp`: Internal HTTP response header and body.
 - `dst`: A buffer to store the result SXG.
