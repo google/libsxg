@@ -14,23 +14,16 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "libsxg/sxg_header.h"
-
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_buffer.h"
 #include "libsxg/internal/sxg_header.h"
+#include "libsxg/sxg_header.h"
+#include "test_util.h"
 
 namespace {
 
-sxg_buffer_t StringToBuffer(const char* src) {
-  sxg_buffer_t buf = sxg_empty_buffer();
-  sxg_write_string(src, &buf);
-  return buf;
-}
-
-std::string BufferToString(const sxg_buffer_t& buf) {
-  return std::string(reinterpret_cast<char* const>(buf.data), buf.size);
-}
+using sxg_test::BufferToString;
+using sxg_test::StringToBuffer;
 
 TEST(SxgHeaderTest, Release) {
   sxg_header_t header = sxg_empty_header();

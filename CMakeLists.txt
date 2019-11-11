@@ -120,6 +120,7 @@ install (
 ########################################
 if (NOT SKIP_TEST)
   enable_testing ()
+
   file (COPY tests/testdata DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
   ExternalProject_Add(
@@ -145,52 +146,59 @@ if (NOT SKIP_TEST)
       "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
   )
   set (GTEST_INCLUDE ${PROJECT_BINARY_DIR}/third_party/gtest/googletest/include)
+
+  add_library(test_util
+    SHARED
+    tests/test_util.cc)
+  target_include_directories(
+    test_util
+    PRIVATE
+      ${PROJECT_SOURCE_DIR}/include
+      ${GTEST_INCLUDE}
+  )
+  add_dependencies (test_util sxg libgtest libgtest_main gtest)
+  target_link_libraries (
+    test_util
+    INTERFACE
+      libgtest
+      libgtest_main
+      pthread
+      sxg
+      ${OPENSSL_LIBRARIES}
+  )
 endif ()
 
-function (add_plain_test test_name)
-  set (target_name "${test_name}")
+macro (add_test_macro target_name test_name)
   add_executable (${target_name} tests/${test_name}.cc)
   add_test(
     NAME ${target_name}
     COMMAND ${target_name}
   )
-  add_dependencies (${target_name} sxg libgtest libgtest_main gtest)
-  target_link_libraries (${target_name} sxg libgtest libgtest_main pthread)
+  add_dependencies (${target_name} libgtest libgtest_main gtest sxg test_util)
+  target_link_libraries (
+    ${target_name}
+    PRIVATE
+      libgtest
+      libgtest_main
+      pthread
+      sxg
+      test_util
+      ${OPENSSL_LIBRARIES})
   target_include_directories(
     ${target_name}
     PRIVATE
       ${PROJECT_SOURCE_DIR}/include
       ${GTEST_INCLUDE}
   )
+endmacro ()
+
+function (add_plain_test test_name)
+  add_test_macro (${test_name} ${test_name})
 endfunction ()
 
 set (SANITIZER_OPTIONS "-fsanitize=address,leak,undefined")
 function (add_sanitizer_test test_name)
-  set (target_name "${test_name}_sanitizer")
-  add_executable (${target_name} tests/${test_name}.cc)
-  target_compile_options(
-    ${target_name}
-    PRIVATE
-      ${SANITIZER_OPTIONS}
-  )
-  target_link_options(
-    ${target_name}
-    PRIVATE
-      ${SANITIZER_OPTIONS}
-  )
-
-  add_test(
-    NAME ${target_name}
-    COMMAND ${target_name}
-  )
-  add_dependencies (${target_name} sxg libgtest libgtest_main gtest)
-  target_link_libraries (${target_name} sxg libgtest libgtest_main pthread)
-  target_include_directories(
-    ${target_name}
-    PRIVATE
-      ${PROJECT_SOURCE_DIR}/include
-      ${GTEST_INCLUDE}
-  )
+  add_test_macro ("${test_name}_sanitizer" ${test_name})
 endfunction ()
 
 function (configure_test test_name)
@@ -200,15 +208,15 @@ function (configure_test test_name)
 endfunction ()
 
 if (NOT SKIP_TEST)
+  configure_test (nfail_malloc_test)
   configure_test (sxg_buffer_test)
   configure_test (sxg_codec_test)
+  configure_test (sxg_encoded_response_test)
+  configure_test (sxg_generate_test)
   configure_test (sxg_header_test)
   configure_test (sxg_sig_test)
-  configure_test (sxg_encoded_response_test)
   configure_test (sxg_signer_list_test)
   configure_test (toplevel_test)
-  configure_test (sxg_generate_test)
-  configure_test (nfail_malloc_test)
 endif ()
 
 

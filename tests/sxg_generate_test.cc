@@ -14,8 +14,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "libsxg/sxg_generate.h"
-
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
@@ -23,41 +21,15 @@
 #include <string>
 
 #include "gtest/gtest.h"
-
-static EVP_PKEY* LoadPrivateKey(const char* filepath) {
-  FILE* const keyfile = fopen(filepath, "r");
-  EXPECT_NE(nullptr, keyfile) << "Could not open " << filepath;
-  EVP_PKEY* private_key =
-      PEM_read_PrivateKey(keyfile, nullptr, nullptr, nullptr);
-  fclose(keyfile);
-  return private_key;
-}
-
-static X509* LoadX509Cert(const char* filepath) {
-  FILE* certfile = fopen(filepath, "r");
-  EXPECT_NE(nullptr, certfile) << "Could not open " << filepath;
-  char passwd[] = "";
-  X509* cert = PEM_read_X509(certfile, 0, 0, passwd);
-  fclose(certfile);
-  return cert;
-}
-
-static EVP_PKEY* LoadEd25519Pubkey(const char* filepath) {
-  FILE* keyfile = fopen(filepath, "r");
-  if (!keyfile) {
-    return nullptr;
-  }
-  EVP_PKEY* public_key = PEM_read_PUBKEY(keyfile, nullptr, nullptr, nullptr);
-  fclose(keyfile);
-  return public_key;
-}
+#include "libsxg/sxg_generate.h"
+#include "test_util.h"
 
 class GenerateTest : public ::testing::Test {
  protected:
   void SetEcdsa256() {
     const size_t now = 1234567890;
-    EVP_PKEY* privkey = LoadPrivateKey("testdata/priv256.key");
-    X509* pubkey = LoadX509Cert("testdata/cert256.pem");
+    EVP_PKEY* privkey = sxg_test::LoadPrivateKey("testdata/priv256.key");
+    X509* pubkey = sxg_test::LoadX509Cert("testdata/cert256.pem");
     EXPECT_TRUE(sxg_add_ecdsa_signer(
         "ecdsa256signer", now, now + 60 * 60 * 24,
         "https://original.example.com/resource.validity.msg", privkey, pubkey,
@@ -68,8 +40,8 @@ class GenerateTest : public ::testing::Test {
 
   void SetEcdsa384() {
     const size_t now = 1234567890;
-    EVP_PKEY* privkey = LoadPrivateKey("testdata/priv384.key");
-    X509* pubkey = LoadX509Cert("testdata/cert384.pem");
+    EVP_PKEY* privkey = sxg_test::LoadPrivateKey("testdata/priv384.key");
+    X509* pubkey = sxg_test::LoadX509Cert("testdata/cert384.pem");
     EXPECT_TRUE(sxg_add_ecdsa_signer(
         "ecdsa384signer", now, now + 60 * 60 * 24,
         "https://original.example.com/resource.validity.msg", privkey, pubkey,
@@ -80,8 +52,8 @@ class GenerateTest : public ::testing::Test {
 
   void SetEd25519() {
     const size_t now = 1234567890;
-    EVP_PKEY* privkey = LoadPrivateKey("testdata/ed25519.key");
-    EVP_PKEY* pubkey = LoadEd25519Pubkey("testdata/ed25519.pubkey");
+    EVP_PKEY* privkey = sxg_test::LoadPrivateKey("testdata/ed25519.key");
+    EVP_PKEY* pubkey = sxg_test::LoadEd25519Pubkey("testdata/ed25519.pubkey");
     EXPECT_TRUE(sxg_add_ed25519_signer(
         "ed25519signer", now, now + 60 * 60 * 24,
         "https://original.example.com/resource.validity.msg", privkey, pubkey,

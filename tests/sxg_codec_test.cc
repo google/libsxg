@@ -14,27 +14,20 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "libsxg/internal/sxg_codec.h"
-
 #include <openssl/pem.h>
 
 #include <string>
 
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_buffer.h"
+#include "libsxg/internal/sxg_codec.h"
 #include "libsxg/sxg_buffer.h"
+#include "test_util.h"
 
 namespace {
 
-sxg_buffer_t StringToBuffer(const char* src) {
-  sxg_buffer_t buf = sxg_empty_buffer();
-  sxg_write_string(src, &buf);
-  return buf;
-}
-
-std::string BufferToString(const sxg_buffer_t& buf) {
-  return std::string(reinterpret_cast<const char*>(buf.data), buf.size);
-}
+using sxg_test::BufferToString;
+using sxg_test::StringToBuffer;
 
 TEST(SxgCodecTest, Sha256) {
   sxg_buffer_t in = StringToBuffer("foo");
@@ -181,29 +174,9 @@ TEST(SxgCodecTest, MiceMultiChunks) {
   sxg_buffer_release(&input);
 }
 
-static EVP_PKEY* LoadPrivateKey(const char* filepath) {
-  FILE* const keyfile = fopen(filepath, "r");
-  EXPECT_NE(nullptr, keyfile) << "Could not open " << filepath;
-  EVP_PKEY* private_key =
-      PEM_read_PrivateKey(keyfile, nullptr, nullptr, nullptr);
-  fclose(keyfile);
-  return private_key;
-}
-
-static EVP_PKEY* LoadPublicKey(const char* filepath) {
-  FILE* certfile = fopen(filepath, "r");
-  EXPECT_NE(nullptr, certfile) << "Could not open " << filepath;
-  char passwd[] = "";
-  X509* cert = PEM_read_X509(certfile, 0, 0, passwd);
-  fclose(certfile);
-  EVP_PKEY* public_key = X509_extract_key(cert);
-  X509_free(cert);
-  return public_key;
-}
-
 TEST(SxgCodecTest, EvpSign) {
-  EVP_PKEY* private_key = LoadPrivateKey("testdata/priv256.key");
-  EVP_PKEY* public_key = LoadPublicKey("testdata/cert256.pem");
+  EVP_PKEY* private_key = sxg_test::LoadPrivateKey("testdata/priv256.key");
+  EVP_PKEY* public_key = sxg_test::LoadPublicKey("testdata/cert256.pem");
   sxg_buffer_t input = StringToBuffer("aaaa");
   sxg_buffer_t output = sxg_empty_buffer();
 

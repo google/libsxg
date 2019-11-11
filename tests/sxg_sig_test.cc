@@ -14,22 +14,16 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "libsxg/internal/sxg_sig.h"
-
 #include <cstdio>
 #include <string>
 
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_codec.h"
+#include "libsxg/internal/sxg_sig.h"
 #include "libsxg/sxg_buffer.h"
+#include "test_util.h"
 
 namespace {
-
-std::string BufferToString(const sxg_buffer_t& buf) {
-  // Casting from uint8_t* to char* is legal because we confirmed char to have 8
-  // bits.
-  return std::string(reinterpret_cast<const char*>(buf.data), buf.size);
-}
 
 void FillSignature(sxg_buffer_t* buffer) {
   static const char sigKey[] = "sig=";
@@ -45,28 +39,12 @@ TEST(SxgSig, ConstructAndRelease) {
   sxg_sig_release(&sig);  // This is no-op.
 }
 
-X509* ReadCert(const std::string& filename) {
-  FILE* const certfile = fopen(filename.c_str(), "r");
-  EXPECT_NE(nullptr, certfile);
-  X509* cert = PEM_read_X509(certfile, 0, 0, NULL);
-  fclose(certfile);
-  return cert;
-}
-
-EVP_PKEY* ReadPrivateKey(const std::string& filename) {
-  FILE* const keyfile = fopen(filename.c_str(), "r");
-  EXPECT_NE(nullptr, keyfile);
-  EVP_PKEY* private_key = PEM_read_PrivateKey(keyfile, NULL, 0, NULL);
-  fclose(keyfile);
-  return private_key;
-}
-
 TEST(SxgSig, MakeSignature) {
   sxg_sig_t sig = sxg_empty_sig();
-  X509* cert = ReadCert("testdata/cert256.pem");
+  X509* cert = sxg_test::LoadX509Cert("testdata/cert256.pem");
   sxg_buffer_t header = sxg_empty_buffer();
   sxg_write_string("dummy_header", &header);
-  EVP_PKEY* pkey = ReadPrivateKey("testdata/priv256.key");
+  EVP_PKEY* pkey = sxg_test::LoadPrivateKey("testdata/priv256.key");
   sxg_buffer_t output = sxg_empty_buffer();
   const std::string expected(
       "testname;cert-sha256=*WrpTHrnR9I9Cj+cizXTozEZB+BnjQKkRe8kKgme4iLU=*;"
@@ -84,7 +62,7 @@ TEST(SxgSig, MakeSignature) {
   EXPECT_TRUE(sxg_sig_generate_sig("https://sxg.test/", &header, pkey, &sig));
   EXPECT_TRUE(sxg_write_signature(&sig, &output));
   FillSignature(&output);
-  EXPECT_EQ(expected, BufferToString(output));
+  EXPECT_EQ(expected, sxg_test::BufferToString(output));
 
   EVP_PKEY_free(pkey);
   X509_free(cert);
