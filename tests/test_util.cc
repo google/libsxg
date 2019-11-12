@@ -14,19 +14,20 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "test_util.h"
+
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 
 #include "gtest/gtest.h"
 #include "libsxg/sxg_buffer.h"
-#include "test_util.h"
 
 namespace sxg_test {
 
 std::string BufferToString(const sxg_buffer_t& buf) {
-  // Casting from uint8_t* to char* is legal because we confirmed char to have 8
-  // bits.
+  // Casting from uint8_t* to char* is legal because we confirmed char to have
+  // 8 bits.
   return std::string(reinterpret_cast<const char*>(buf.data), buf.size);
 }
 
@@ -36,17 +37,23 @@ sxg_buffer_t StringToBuffer(const char* src) {
   return buf;
 }
 
-X509* LoadX509Cert(const std::string& filename) {
-  FILE* const certfile = fopen(filename.c_str(), "r");
-  EXPECT_NE(nullptr, certfile) << "Failed to open privatekey";
-  X509* cert = PEM_read_X509(certfile, 0, 0, NULL);
+X509* LoadX509Cert(const std::string& filepath) {
+  FILE* const certfile = fopen(filepath.c_str(), "r");
+  if (certfile == nullptr) {
+    std::cerr << "Failed to open privatekey";
+    abort();
+  }
+  X509* cert = PEM_read_X509(certfile, nullptr, nullptr, nullptr);
   fclose(certfile);
   return cert;
 }
 
 EVP_PKEY* LoadPrivateKey(const std::string& filepath) {
   FILE* const keyfile = fopen(filepath.c_str(), "r");
-  EXPECT_NE(nullptr, keyfile) << "Could not open " << filepath;
+  if (keyfile == nullptr) {
+    std::cerr <<  "Could not open " << filepath;
+    abort();
+  }
   EVP_PKEY* private_key =
       PEM_read_PrivateKey(keyfile, nullptr, nullptr, nullptr);
   fclose(keyfile);
@@ -54,19 +61,22 @@ EVP_PKEY* LoadPrivateKey(const std::string& filepath) {
 }
 
 EVP_PKEY* LoadPublicKey(const std::string& filepath) {
-  FILE* certfile = fopen(filepath.c_str(), "r");
-  EXPECT_NE(nullptr, certfile) << "Could not open " << filepath;
-  char passwd[] = "";
-  X509* cert = PEM_read_X509(certfile, 0, 0, passwd);
-  fclose(certfile);
+  X509* cert = LoadX509Cert(filepath);
+  if (cert == nullptr) {
+    std::cerr <<  "Could not Load cert from " << filepath;
+    abort();
+  }
   EVP_PKEY* public_key = X509_extract_key(cert);
   X509_free(cert);
   return public_key;
 }
 
-EVP_PKEY* LoadEd25519Pubkey(const char* filepath) {
-  FILE* keyfile = fopen(filepath, "r");
-  EXPECT_NE(nullptr, keyfile) << "Could not open " << filepath;
+EVP_PKEY* LoadEd25519Pubkey(const std::string& filepath) {
+  FILE* keyfile = fopen(filepath.c_str(), "r");
+  if (keyfile == nullptr) {
+    std::cerr <<  "Could not open " << filepath;
+    abort();
+  }
   EVP_PKEY* public_key = PEM_read_PUBKEY(keyfile, nullptr, nullptr, nullptr);
   fclose(keyfile);
   return public_key;

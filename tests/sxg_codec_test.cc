@@ -14,20 +14,21 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "libsxg/internal/sxg_codec.h"
+
 #include <openssl/pem.h>
 
 #include <string>
 
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_buffer.h"
-#include "libsxg/internal/sxg_codec.h"
 #include "libsxg/sxg_buffer.h"
 #include "test_util.h"
 
 namespace {
 
-using sxg_test::BufferToString;
-using sxg_test::StringToBuffer;
+using ::sxg_test::BufferToString;
+using ::sxg_test::StringToBuffer;
 
 TEST(SxgCodecTest, Sha256) {
   sxg_buffer_t in = StringToBuffer("foo");

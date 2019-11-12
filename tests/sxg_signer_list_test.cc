@@ -14,6 +14,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "libsxg/sxg_signer_list.h"
+
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 
@@ -21,7 +23,6 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "libsxg/sxg_signer_list.h"
 #include "test_util.h"
 
 namespace {

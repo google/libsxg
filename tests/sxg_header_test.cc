@@ -14,16 +14,17 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "libsxg/sxg_header.h"
+
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_buffer.h"
 #include "libsxg/internal/sxg_header.h"
-#include "libsxg/sxg_header.h"
 #include "test_util.h"
 
 namespace {
 
-using sxg_test::BufferToString;
-using sxg_test::StringToBuffer;
+using ::sxg_test::BufferToString;
+using ::sxg_test::StringToBuffer;
 
 TEST(SxgHeaderTest, Release) {
   sxg_header_t header = sxg_empty_header();

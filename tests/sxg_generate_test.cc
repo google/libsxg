@@ -14,6 +14,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "libsxg/sxg_generate.h"
+
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
@@ -21,7 +23,6 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "libsxg/sxg_generate.h"
 #include "test_util.h"
 
 class GenerateTest : public ::testing::Test {

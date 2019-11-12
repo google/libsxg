@@ -14,15 +14,16 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "libsxg/sxg_encoded_response.h"
+
 #include <string>
 
 #include "gtest/gtest.h"
-#include "libsxg/sxg_encoded_response.h"
 #include "test_util.h"
 
 namespace {
 
-using sxg_test::BufferToString;
+using ::sxg_test::BufferToString;
 
 TEST(SxgEncodedResponse, InitializeAndReleaseEmptyRawResponse) {
   sxg_raw_response_t resp = sxg_empty_raw_response();

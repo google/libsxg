@@ -14,12 +14,13 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "libsxg/internal/sxg_sig.h"
+
 #include <cstdio>
 #include <string>
 
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_codec.h"
-#include "libsxg/internal/sxg_sig.h"
 #include "libsxg/sxg_buffer.h"
 #include "test_util.h"
 

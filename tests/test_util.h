@@ -25,12 +25,12 @@ std::string BufferToString(const sxg_buffer_t& buf);
 
 sxg_buffer_t StringToBuffer(const char* src);
 
-X509* LoadX509Cert(const std::string& filename);
+X509* LoadX509Cert(const std::string& filepath);
 
 EVP_PKEY* LoadPrivateKey(const std::string& filepath);
 
 EVP_PKEY* LoadPublicKey(const std::string& filepath);
 
-EVP_PKEY* LoadEd25519Pubkey(const char* filepath);
+EVP_PKEY* LoadEd25519Pubkey(const std::string& filepath);
 
 }  // namespace sxg_test

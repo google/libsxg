@@ -13,17 +13,17 @@
 // limitations under the License.
 //
 ///////////////////////////////////////////////////////////////////////////////
+#include "libsxg/sxg_buffer.h"
 
 #include <string>
 
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_buffer.h"
-#include "libsxg/sxg_buffer.h"
 #include "test_util.h"
 
 namespace {
 
-using sxg_test::BufferToString;
+using ::sxg_test::BufferToString;
 
 TEST(SxgBufferTest, InitializeEmpty) {
   sxg_buffer_t buf = sxg_empty_buffer();
@@ -218,8 +218,7 @@ TEST(SxgBufferTest, BufferCopy) {
   EXPECT_TRUE(sxg_buffer_copy(&buf1, &buf2));
   sxg_write_string(" world.", &buf1);
   EXPECT_EQ("hello world.", BufferToString(buf1));
-  EXPECT_EQ("hello",
-            BufferToString(buf2));  // buf2 has been deeply copied.
+  EXPECT_EQ("hello", BufferToString(buf2));  // buf2 has been deeply copied.
 
   sxg_buffer_release(&buf1);
   sxg_buffer_release(&buf2);
