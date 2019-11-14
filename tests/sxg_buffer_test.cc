@@ -13,21 +13,17 @@
 // limitations under the License.
 //
 ///////////////////////////////////////////////////////////////////////////////
-
 #include "libsxg/sxg_buffer.h"
 
 #include <string>
 
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_buffer.h"
+#include "test_util.h"
 
 namespace {
 
-std::string BufferToString(const sxg_buffer_t& buf) {
-  // Casting from uint8_t* to char* is legal because we confirmed char to have 8
-  // bits.
-  return std::string(reinterpret_cast<const char*>(buf.data), buf.size);
-}
+using ::sxg_test::BufferToString;
 
 TEST(SxgBufferTest, InitializeEmpty) {
   sxg_buffer_t buf = sxg_empty_buffer();

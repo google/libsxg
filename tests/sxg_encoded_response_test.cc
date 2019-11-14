@@ -19,8 +19,11 @@
 #include <string>
 
 #include "gtest/gtest.h"
+#include "test_util.h"
 
 namespace {
+
+using ::sxg_test::BufferToString;
 
 TEST(SxgEncodedResponse, InitializeAndReleaseEmptyRawResponse) {
   sxg_raw_response_t resp = sxg_empty_raw_response();
@@ -30,12 +33,6 @@ TEST(SxgEncodedResponse, InitializeAndReleaseEmptyRawResponse) {
 TEST(SxgEncodedResponse, InitializeAndReleaseEmptyEncodedResponse) {
   sxg_encoded_response_t resp = sxg_empty_encoded_response();
   sxg_encoded_response_release(&resp);
-}
-
-std::string BufferToString(const sxg_buffer_t& buf) {
-  // Casting from uint8_t* to char* is legal because we confirmed char to have 8
-  // bits.
-  return std::string(reinterpret_cast<const char*>(buf.data), buf.size);
 }
 
 std::string HeaderFindKey(const sxg_header_t& header, const char* key) {

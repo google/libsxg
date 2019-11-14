@@ -20,6 +20,7 @@
 
 #include "gtest/gtest.h"
 #include "libsxg.h"
+#include "test_util.h"
 
 namespace {
 
@@ -82,18 +83,10 @@ TEST_F(FailAtNTest, GenerateSxg) {
 
   RunWithoutAllocationLimit([&]() {
     // Prepare keys.
-    FILE* keyfile = fopen("testdata/priv256.key", "r");
-    ASSERT_NE(nullptr, keyfile);
-    priv_key = PEM_read_PrivateKey(keyfile, nullptr, nullptr, nullptr);
-    fclose(keyfile);
+    priv_key = sxg_test::LoadPrivateKey("testdata/priv256.key");
     ASSERT_NE(nullptr, priv_key);
 
-    FILE* certfile = fopen("testdata/cert256.pem", "r");
-    ASSERT_NE(nullptr, certfile);
-
-    char passwd[] = "";
-    cert = PEM_read_X509(certfile, 0, 0, passwd);
-    fclose(certfile);
+    cert = sxg_test::LoadX509Cert("testdata/cert256.pem");
     ASSERT_NE(nullptr, cert);
   });
 
@@ -114,7 +107,7 @@ TEST_F(FailAtNTest, GenerateSxg) {
 
     success =
         success && sxg_write_string(
-            "<!DOCTYPE html><html><body>Hello Sxg!</body></html>\n",
+                       "<!DOCTYPE html><html><body>Hello Sxg!</body></html>\n",
                        &content.payload);
 
     // Encode contents.

@@ -14,26 +14,18 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <openssl/ssl.h>
 #include <stdbool.h>
 #include <time.h>
 
 #include "gtest/gtest.h"
 #include "libsxg.h"
+#include "test_util.h"
 
 // Almost similar to README.md test.
 TEST(LibSXG, TopLevel) {
   // Load keys.
-  char passwd[] = "";
-  FILE* keyfile = fopen("testdata/priv256.key", "r");
-  ASSERT_NE(nullptr, keyfile) << "Failed to open privatekey";
-  EVP_PKEY* priv_key = PEM_read_PrivateKey(keyfile, nullptr, nullptr, nullptr);
-  fclose(keyfile);
-
-  FILE* certfile = fopen("testdata/cert256.pem", "r");
-  ASSERT_NE(nullptr, certfile) << "Failed to open certificates.";
-  X509* cert = PEM_read_X509(certfile, 0, 0, passwd);
-  fclose(certfile);
+  EVP_PKEY* priv_key = sxg_test::LoadPrivateKey("testdata/priv256.key");
+  X509* cert = sxg_test::LoadX509Cert("testdata/cert256.pem");
 
   // Initialize signers.
   time_t now = time(nullptr);
