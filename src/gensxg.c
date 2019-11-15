@@ -115,7 +115,7 @@ static X509* load_x509_cert(const char* filepath) {
   }
   X509* const cert = PEM_read_X509(certfile, NULL, NULL, NULL);
   if (cert == NULL) {
-    fprintf(stderr, "Failed to read cetificate: %s\n", filepath);
+    fprintf(stderr, "Failed to read certificate: %s\n", filepath);
     exit(EXIT_FAILURE);
   }
   fclose(certfile);
