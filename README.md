@@ -30,7 +30,7 @@ $ sudo make install
 
 ## Documents
 
-See [docs](docs/OVERVIEW.md).
+See [docs](docs/index.md).
 
 ## Quickstart
 
