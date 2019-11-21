@@ -14,10 +14,12 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "libsxg/sxg_buffer.h"
-#include <string>
 #include <openssl/evp.h>
 #include <openssl/x509.h>
+
+#include <string>
+
+#include "libsxg/sxg_buffer.h"
 
 namespace sxg_test {
 
