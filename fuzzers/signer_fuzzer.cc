@@ -25,7 +25,6 @@
 
 namespace {
 
-
 sxg_signer_list_t MakeSignerList() {
   char passwd[] = "";
   FILE* keyfile = fopen("testdata/priv256.key", "r");
