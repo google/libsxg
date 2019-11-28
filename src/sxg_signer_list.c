@@ -17,6 +17,8 @@
 #include "libsxg/sxg_signer_list.h"
 
 #include <assert.h>
+#include <openssl/crypto.h>
+#include <openssl/evp.h>
 #include <openssl/x509.h>
 
 #include "libsxg/internal/sxg_buffer.h"
