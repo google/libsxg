@@ -224,18 +224,19 @@ endif ()
 ## Fuzzing
 ########################################
 
+set (fuzzer_option "-fsanitize=address,fuzzer")
 function (configure_fuzzer fuzzer_name)
   message ("-- Configuring fuzzer: ${fuzzer_name}")
   add_executable (${fuzzer_name} fuzzers/${fuzzer_name}.cc)
   target_compile_options(
     ${fuzzer_name}
     PRIVATE
-      -fsanitize=address,fuzzer
+      ${fuzzer_option}
   )
   target_link_options(
     ${fuzzer_name}
     PRIVATE
-      -fsanitize=address,fuzzer
+      ${fuzzer_option}
   )
 
   add_dependencies (${fuzzer_name} sxg)
@@ -252,6 +253,19 @@ function (configure_fuzzer fuzzer_name)
   )
 endfunction ()
 
+# check_cxx_compiler_flag command may be good.
+try_compile(fuzzer_available
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_SOURCE_DIR}/fuzzers/signer_fuzzer.cc
+  CMAKE_FLAGS "-DINCLUDE_DIRECTORIES:STRING=${PROJECT_SOURCE_DIR}/include"
+  LINK_LIBRARIES "sxg ${OPENSSL_LIBRARIES}"
+  LINK_OPTIONS ${fuzzer_option}
+)
+
 if (NOT SKIP_TEST)
-  configure_fuzzer(signer_fuzzer)
+  if (fuzzer_available)
+    configure_fuzzer(signer_fuzzer)
+  else ()
+    message ("fuzzer disabled because the compiler ${CMAKE_CXX_COMPILER} does not support [${fuzzer_option}] option")
+  endif ()
 endif ()
