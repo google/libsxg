@@ -18,8 +18,9 @@ static const struct option kOptions[] = {
   { "content",      required_argument, NULL, 'c' },
   { "contentType",  required_argument, NULL, 't' },
   { "header",       required_argument, NULL, 'H' },
+  { "output",       required_argument, NULL, 'o' },
   { "miRecordSize", required_argument, NULL, 'm' },
-  { "url",          required_argument, NULL, 'u' },
+  { "uri",          required_argument, NULL, 'u' },
   { "certUrl",      required_argument, NULL, 'r' },
   { "validityUrl",  required_argument, NULL, 'v' },
   { "certificate",  required_argument, NULL, 'e' },
@@ -54,7 +55,10 @@ static const char kHelpMessage[] =
     "\n"
     "The options below are not applicable to <integrity hash only mode>.\n"
     "\n"
-    "-url string\n"
+    "-o string\n"
+    "  Signed exchange output file. If value is '-', sxg is written to stdout. "
+    " (default \"out.sxg\")"
+    "-uri string\n"
     "  The URI of the resource represented in the SXG file. (required)\n"
     "-certUrl string\n"
     "  The URI of certificate cbor file published. (required)\n"
@@ -82,6 +86,7 @@ typedef struct {
   const char* content_type;
   sxg_header_t header;
   uint64_t mi_record_size;
+  const char* output;
   const char* url;
   const char* cert_url;
   const char* validity_url;
@@ -159,6 +164,7 @@ static Options init_default_options() {
   result.date = time(NULL);
   result.duration = 60 * 60 * 24 * 7;  /* = 7 Days in seconds. */
   result.mi_record_size = 4096;
+  result.output = "out.sxg";
   return result;
 }
 
@@ -212,6 +218,9 @@ static Options parse_options(int argc, char* const argv[]) {
         break;
       case 'm':
         result.mi_record_size = strtoull(optarg, NULL, 0);
+        break;
+      case 'o':
+        result.output = optarg;
         break;
       case 'u':
         result.url = optarg;
@@ -449,23 +458,34 @@ static void print_integrity_hash(const sxg_encoded_response_t* encoded) {
   }
 }
 
-void print_sxg(const sxg_signer_list_t* signers,
+void write_sxg(const sxg_signer_list_t* signers,
                const char* url,
-               sxg_encoded_response_t* encoded) {
+               sxg_encoded_response_t* encoded,
+               const char* output) {
   sxg_buffer_t result = sxg_empty_buffer();
   if (!sxg_generate(url, signers, encoded, &result)) {
     fputs("Failed to generate SXG.\n", stderr);
     exit(EXIT_FAILURE);
   }
-    
-  if (freopen(NULL, "wb", stdout) == NULL) {
-    perror("reopen stdout");
-    exit(EXIT_FAILURE);
+
+  FILE* out;
+  if (strcmp(output, "-") == 0) {
+    out = freopen(NULL, "wb", stdout);
+    if (out == NULL) {
+      perror("reopen stdout");
+      exit(EXIT_FAILURE);
+    }
+  } else {
+    out = fopen(output, "wb");
+    if (out == NULL) {
+      perror("open file");
+      exit(EXIT_FAILURE);
+    }
   }
 
-  size_t written = fwrite(result.data, sizeof(uint8_t), result.size, stdout);
+  size_t written = fwrite(result.data, sizeof(uint8_t), result.size, out);
   if (written != result.size) {
-    perror("fwrite stdout");
+    perror("fwrite");
     exit(EXIT_FAILURE);
   }
 
@@ -491,7 +511,7 @@ int main(int argc, char* const argv[]) {
   } else {
     sxg_signer_list_t signers = sxg_empty_signer_list();
     load_signer(&opt, &signers);
-    print_sxg(&signers, opt.url, &encoded);
+    write_sxg(&signers, opt.url, &encoded, opt.output);
     sxg_signer_list_release(&signers);
   }
 
