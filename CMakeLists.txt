@@ -253,14 +253,14 @@ function (configure_fuzzer fuzzer_name)
   )
 endfunction ()
 
+# check_cxx_compiler_flag command may be good.
 try_compile(fuzzer_available
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_SOURCE_DIR}/fuzzers/signer_fuzzer.cc
   CMAKE_FLAGS "-DINCLUDE_DIRECTORIES:STRING=${PROJECT_SOURCE_DIR}/include"
   LINK_LIBRARIES "sxg ${OPENSSL_LIBRARIES}"
   LINK_OPTIONS ${fuzzer_option}
-  OUTPUT_VARIABLE out
-  )
+)
 
 if (NOT SKIP_TEST)
   if (fuzzer_available)
