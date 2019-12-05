@@ -489,6 +489,11 @@ void write_sxg(const sxg_signer_list_t* signers,
     exit(EXIT_FAILURE);
   }
 
+  if (fclose(out) != 0) {
+    perror("fclose");
+    exit(EXIT_FAILURE);
+  }
+
   sxg_buffer_release(&result);
 }
 
