@@ -25,6 +25,8 @@
 #include "gtest/gtest.h"
 #include "test_util.h"
 
+namespace {
+
 class GenerateTest : public ::testing::Test {
  protected:
   void SetEcdsa256() {
@@ -157,3 +159,5 @@ TEST_F(GenerateTest, GenerateMultiSig) {
 
   DumpResult("MultiSig.sxg");
 }
+
+}  // namespace

@@ -111,6 +111,27 @@ bool sxg_write_byte(uint8_t byte, sxg_buffer_t* target) {
   return true;
 }
 
+bool sxg_write_utf8_cbor_header(size_t length, sxg_buffer_t* target) {
+  if (length <= 0x17) {
+    return sxg_write_byte(0x60 + length, target);
+  } else if (length <= 0xff) {
+    return sxg_write_byte(0x78, target) && sxg_write_int(length, 1, target);
+  } else if (length <= 0xffff) {
+    return sxg_write_byte(0x79, target) && sxg_write_int(length, 2, target);
+  } else if (length <= 0xffffffff) {
+    return sxg_write_byte(0x7a, target) && sxg_write_int(length, 4, target);
+  } else {
+    return sxg_write_byte(0x7b, target) && sxg_write_int(length, 8, target);
+  }
+  return false;
+}
+
+bool sxg_write_utf8string_cbor(const char* string, sxg_buffer_t* target) {
+  size_t length = strlen(string);
+  return sxg_write_utf8_cbor_header(length, target) &&
+         sxg_write_bytes((const uint8_t*)string, length, target);
+}
+
 bool sxg_write_string(const char* string, sxg_buffer_t* target) {
   return sxg_write_bytes((const uint8_t*)string, strlen(string), target);
 }

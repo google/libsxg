@@ -53,6 +53,7 @@ find_package (OpenSSL REQUIRED)
 add_library(sxg
   src/sxg_buffer.c
   src/sxg_buffer_debug.c
+  src/sxg_cert_chain.c
   src/sxg_codec.c
   src/sxg_generate.c
   src/sxg_raw_response.c
@@ -89,6 +90,25 @@ target_include_directories(
 
 target_link_libraries(
   gensxg
+  PRIVATE
+    ${OPENSSL_LIBRARIES}
+    sxg
+    )
+  
+add_executable(
+  gencertchain
+    src/gencertchain.c
+)
+
+target_include_directories(
+  gencertchain
+  PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${OPENSSL_INCLUDE_DIR}
+)
+
+target_link_libraries(
+  gencertchain
   PRIVATE
     ${OPENSSL_LIBRARIES}
     sxg
@@ -210,6 +230,7 @@ endfunction ()
 if (NOT SKIP_TEST)
   configure_test (nfail_malloc_test)
   configure_test (sxg_buffer_test)
+  configure_test (sxg_cert_chain_test)
   configure_test (sxg_codec_test)
   configure_test (sxg_encoded_response_test)
   configure_test (sxg_generate_test)
