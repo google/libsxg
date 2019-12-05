@@ -458,6 +458,14 @@ static void print_integrity_hash(const sxg_encoded_response_t* encoded) {
   }
 }
 
+void write_buffer(sxg_buffer_t* src, FILE* dst) {
+  size_t written = fwrite(src->data, sizeof(uint8_t), src->size, dst);
+  if (written != src->size) {
+    perror("fwrite");
+    exit(EXIT_FAILURE);
+  }
+}
+
 void write_sxg(const sxg_signer_list_t* signers,
                const char* url,
                sxg_encoded_response_t* encoded,
@@ -468,30 +476,24 @@ void write_sxg(const sxg_signer_list_t* signers,
     exit(EXIT_FAILURE);
   }
 
-  FILE* out;
   if (strcmp(output, "-") == 0) {
-    out = freopen(NULL, "wb", stdout);
-    if (out == NULL) {
+    freopen(NULL, "wb", stdout);
+    if (stdout == NULL) {
       perror("reopen stdout");
       exit(EXIT_FAILURE);
     }
+    write_buffer(&result, stdout);
   } else {
-    out = fopen(output, "wb");
+    FILE* out = fopen(output, "wb");
     if (out == NULL) {
       perror("open file");
       exit(EXIT_FAILURE);
     }
-  }
-
-  size_t written = fwrite(result.data, sizeof(uint8_t), result.size, out);
-  if (written != result.size) {
-    perror("fwrite");
-    exit(EXIT_FAILURE);
-  }
-
-  if (fclose(out) != 0) {
-    perror("fclose");
-    exit(EXIT_FAILURE);
+    write_buffer(&result, out);
+    if (fclose(out) != 0) {
+      perror("fclose");
+      exit(EXIT_FAILURE);
+    }
   }
 
   sxg_buffer_release(&result);
@@ -508,7 +510,7 @@ int main(int argc, char* const argv[]) {
     dump_options(&opt);
     return 1;
   }
-  
+
   sxg_encoded_response_t encoded = get_encoded_response(&opt);
 
   if (opt.integrity_mode) {
