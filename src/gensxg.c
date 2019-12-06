@@ -458,14 +458,6 @@ static void print_integrity_hash(const sxg_encoded_response_t* encoded) {
   }
 }
 
-void write_buffer(sxg_buffer_t* src, FILE* dst) {
-  size_t written = fwrite(src->data, sizeof(uint8_t), src->size, dst);
-  if (written != src->size) {
-    perror("fwrite");
-    exit(EXIT_FAILURE);
-  }
-}
-
 void write_sxg(const sxg_signer_list_t* signers,
                const char* url,
                sxg_encoded_response_t* encoded,
@@ -493,7 +485,12 @@ void write_sxg(const sxg_signer_list_t* signers,
     }
   }
 
-  write_buffer(&result, out);
+  size_t written = fwrite(result.data, sizeof(uint8_t), result.size, out);
+  if (written != result.size) {
+    perror("fwrite");
+    exit(EXIT_FAILURE);
+  }
+
   if (out != stdout && fclose(out) != 0) {
     perror("fclose");
     exit(EXIT_FAILURE);
