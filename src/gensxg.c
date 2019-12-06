@@ -476,24 +476,25 @@ void write_sxg(const sxg_signer_list_t* signers,
     exit(EXIT_FAILURE);
   }
 
+  FILE* out;
   if (strcmp(output, "-") == 0) {
-    freopen(NULL, "wb", stdout);
-    if (stdout == NULL) {
+    out = freopen(NULL, "wb", stdout);
+    if (out == NULL) {
       perror("reopen stdout");
       exit(EXIT_FAILURE);
     }
-    write_buffer(&result, stdout);
   } else {
-    FILE* out = fopen(output, "wb");
+    out = fopen(output, "wb");
     if (out == NULL) {
       perror("open file");
       exit(EXIT_FAILURE);
     }
-    write_buffer(&result, out);
-    if (fclose(out) != 0) {
-      perror("fclose");
-      exit(EXIT_FAILURE);
-    }
+  }
+
+  write_buffer(&result, out);
+  if (out != stdout && fclose(out) != 0) {
+    perror("fclose");
+    exit(EXIT_FAILURE);
   }
 
   sxg_buffer_release(&result);
