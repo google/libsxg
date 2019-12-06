@@ -478,6 +478,8 @@ void write_sxg(const sxg_signer_list_t* signers,
 
   FILE* out;
   if (strcmp(output, "-") == 0) {
+    // In Linux, stdout is binary mode by default.
+    // But we freopen it for portability.
     out = freopen(NULL, "wb", stdout);
     if (out == NULL) {
       perror("reopen stdout");
