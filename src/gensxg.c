@@ -470,6 +470,8 @@ void write_sxg(const sxg_signer_list_t* signers,
 
   FILE* out;
   if (strcmp(output, "-") == 0) {
+    // In Linux, stdout is binary mode by default.
+    // But we freopen it for portability.
     out = freopen(NULL, "wb", stdout);
     if (out == NULL) {
       perror("reopen stdout");
@@ -489,6 +491,11 @@ void write_sxg(const sxg_signer_list_t* signers,
     exit(EXIT_FAILURE);
   }
 
+  if (out != stdout && fclose(out) != 0) {
+    perror("fclose");
+    exit(EXIT_FAILURE);
+  }
+
   sxg_buffer_release(&result);
 }
 
@@ -503,7 +510,7 @@ int main(int argc, char* const argv[]) {
     dump_options(&opt);
     return 1;
   }
-  
+
   sxg_encoded_response_t encoded = get_encoded_response(&opt);
 
   if (opt.integrity_mode) {
