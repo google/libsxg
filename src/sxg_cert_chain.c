@@ -63,7 +63,8 @@ static void sxg_cert_release(sxg_cert_t* target) {
 static bool ensure_free_capacity(size_t desired_margin,
                                  sxg_cert_chain_t* target) {
   return sxg_ensure_free_capacity_internal(
-      target->size, desired_margin, 8, sizeof(sxg_cert_chain_t), &target->capacity,
+      target->size, desired_margin, 8,
+      sizeof(sxg_cert_chain_t), &target->capacity,
       (void**)&target->certs);
 }
 
@@ -130,10 +131,7 @@ bool sxg_extract_ocsp_url(X509* cert, sxg_buffer_t* dst) {
 }
 
 static bool wait_fd(int fd, bool read, bool write) {
-  /*
-   * Here we use select(2) for portability in Linux and BSD.
-   * 
-   */
+  // We use select(2) here for portability in Linux and BSD.
   int rv;
   fd_set confds;
   FD_ZERO(&confds);
@@ -158,12 +156,10 @@ bool sxg_execute_ocsp_request(BIO* io, const char* path,
   if (BIO_get_fd(io, &fd) < 0) {  // Can't get connection fd.
     return false;
   }
-  OCSP_REQ_CTX* octx = OCSP_sendreq_new(io, path, NULL, -1);
-  OCSP_REQUEST* req = OCSP_REQUEST_new();
-  if (!OCSP_request_add0_id(req, id)) {
-    return false;
-  }
-  bool success = OCSP_REQ_CTX_set1_req(octx, req) &&
+  OCSP_REQ_CTX* const octx = OCSP_sendreq_new(io, path, NULL, -1);
+  OCSP_REQUEST* const req = OCSP_REQUEST_new();
+  bool success = OCSP_request_add0_id(req, id) &&
+                 OCSP_REQ_CTX_set1_req(octx, req) &&
                  wait_fd(fd, false, true);
   while (success) {
     if (OCSP_sendreq_nbio(dst, octx) != -1) {
@@ -177,7 +173,9 @@ bool sxg_execute_ocsp_request(BIO* io, const char* path,
   return success;
 }
 
-bool sxg_make_ocsp_session(const char* ocsp_url, char** path, BIO** connection) {
+static bool sxg_make_ocsp_session(const char* ocsp_url,
+                                  char** path,
+                                  BIO** connection) {
   char* host;
   char* port;
   int use_ssl;
@@ -255,7 +253,7 @@ bool sxg_write_array_cbor_header(size_t length, sxg_buffer_t* target) {
   return false;
 }
 
-bool sxg_get_x509_serialized_size(X509* cert, size_t* size) {
+static bool sxg_get_x509_serialized_size(X509* cert, size_t* size) {
   const int len = i2d_X509(cert, NULL);
   if (len <= 0) {
     return false;
@@ -264,7 +262,7 @@ bool sxg_get_x509_serialized_size(X509* cert, size_t* size) {
   return true;
 }
 
-bool sxg_serialize_x509(X509* cert, uint8_t* dst) {
+static bool sxg_serialize_x509(X509* cert, uint8_t* dst) {
   const int len = i2d_X509(cert, &dst);
   if (len <= 0) {
     return false;
@@ -272,13 +270,13 @@ bool sxg_serialize_x509(X509* cert, uint8_t* dst) {
   return true;
 }
 
-size_t sxg_cert_entries(const sxg_cert_t* cert) {
+static size_t sxg_cert_entries(const sxg_cert_t* cert) {
   return (cert->certificate != NULL ? 1 : 0) +
       (cert->ocsp_response != NULL ? 1 : 0) +
       (cert->sct_list.data != NULL ? 1 : 0);
 }
 
-bool sxg_write_x509_cbor(X509* cert, sxg_buffer_t* dst) {
+static bool sxg_write_x509_cbor(X509* cert, sxg_buffer_t* dst) {
   size_t serialized_size;
   bool success =
       sxg_get_x509_serialized_size(cert, &serialized_size) &&
@@ -288,7 +286,8 @@ bool sxg_write_x509_cbor(X509* cert, sxg_buffer_t* dst) {
   return success;
 }
 
-bool sxg_get_ocsp_response_serialized_size(OCSP_RESPONSE* ocsp, size_t* size) {
+static bool sxg_get_ocsp_response_serialized_size(OCSP_RESPONSE* ocsp,
+                                                  size_t* size) {
   const int len = i2d_OCSP_RESPONSE(ocsp, NULL);
   if (len <= 0) {
     return false;
@@ -297,7 +296,7 @@ bool sxg_get_ocsp_response_serialized_size(OCSP_RESPONSE* ocsp, size_t* size) {
   return true;
 }
 
-bool sxg_serialize_ocsp_response(OCSP_RESPONSE* ocsp, uint8_t* dst) {
+static bool sxg_serialize_ocsp_response(OCSP_RESPONSE* ocsp, uint8_t* dst) {
   const int len = i2d_OCSP_RESPONSE(ocsp, &dst);
   if (len <= 0) {
     return false;
@@ -305,17 +304,20 @@ bool sxg_serialize_ocsp_response(OCSP_RESPONSE* ocsp, uint8_t* dst) {
   return true;
 }
 
-bool sxg_write_ocsp_response_cbor(OCSP_RESPONSE* ocsp, sxg_buffer_t* dst) {
+static bool sxg_write_ocsp_response_cbor(OCSP_RESPONSE* ocsp,
+                                         sxg_buffer_t* dst) {
   size_t serialized_size;
   bool success =
       sxg_get_ocsp_response_serialized_size(ocsp, &serialized_size) &&
       sxg_write_cbor_header(serialized_size, dst) &&
       sxg_buffer_resize(dst->size + serialized_size, dst) &&
-      sxg_serialize_ocsp_response(ocsp, dst->data + dst->size - serialized_size);
+      sxg_serialize_ocsp_response(ocsp,
+                                  dst->data + dst->size - serialized_size);
   return success;
 }
 
-bool sxg_write_cert_chain_cbor(const sxg_cert_chain_t* chain, sxg_buffer_t* dst) {
+bool sxg_write_cert_chain_cbor(const sxg_cert_chain_t* chain,
+                               sxg_buffer_t* dst) {
   static const char kMagicString[] = "📜⛓";
   bool success = sxg_write_array_cbor_header(chain->size + 1, dst) &&
                  sxg_write_utf8string_cbor(kMagicString, dst);
