@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <sys/select.h>
 #include <openssl/asn1.h>
 #include <openssl/bio.h>
 #include <openssl/ocsp.h>
@@ -129,6 +130,10 @@ bool sxg_extract_ocsp_url(X509* cert, sxg_buffer_t* dst) {
 }
 
 static bool wait_fd(int fd, bool read, bool write) {
+  /*
+   * Here we use select(2) for portability in Linux and BSD.
+   * 
+   */
   int rv;
   fd_set confds;
   FD_ZERO(&confds);

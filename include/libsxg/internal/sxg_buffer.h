@@ -36,7 +36,7 @@ bool sxg_write_int(uint64_t num, int nbytes, sxg_buffer_t* target);
 
 // Appends the magic header for a utf-8 string (for internal use).
 // Returns true on success.
-bool sxg_write_utf8_cbor_header(size_t length, sxg_buffer_t* target);
+bool sxg_write_utf8_cbor_header(uint64_t length, sxg_buffer_t* target);
 
 // Appends utf-8 encoded string to the buffer. `string` must be null terminated.
 // Returns true on success.

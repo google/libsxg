@@ -41,27 +41,27 @@ typedef struct {
   size_t capacity;
 } sxg_cert_chain_t;
 
-// Create empty cert chain. Never fails.
+// Creates empty cert chain. Never fails.
 sxg_cert_chain_t sxg_empty_cert_chain();
 
-// Releases all memory and content of cert chain.
+// Releases all memory and content of Cert-Chain.
 void sxg_cert_chain_release(sxg_cert_chain_t* target);
 
 // Writes Cert-Chain to dst. Returns true on success.
 bool sxg_write_cert_chain_cbor(const sxg_cert_chain_t* chain,
                                sxg_buffer_t* dst);
 
-// Extracts ocsp buffer from specified X509 cert.
+// Extracts OCSP URL to buffer from specified X509 certificate.
 bool sxg_extract_ocsp_url(X509* cert, sxg_buffer_t* dst);
 
-// Sends request to the `io` and receieve and parse the response to `dst`.
+// Sends request to the `io` and receieves and parses the response to `dst`.
 bool sxg_execute_ocsp_request(BIO* io, const char* path,
                               OCSP_CERTID* id, OCSP_RESPONSE** dst);
 
-// Fetch OCSP stapling from specified cert.
+// Fetches OCSP response from specified cert.
 bool sxg_fetch_ocsp_response(X509* cert, X509* issuer, OCSP_RESPONSE** dst);
 
-// Adds new certificate to the certificate chain. OCSP response and SCT list can
+// Adds new certificate to the Cert-Chain. OCSP response and SCT list can
 // be NULL. Returns true on success.
 bool sxg_cert_chain_append_cert(X509* cert,
                                 OCSP_RESPONSE* ocsp_response,

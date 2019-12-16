@@ -132,4 +132,3 @@ bool sxg_generate(const char* fallback_url, const sxg_signer_list_t* signers,
   // represented by the "application/signed-exchange" resource.
   return success && sxg_write_buffer(&resp->payload, dst);
 }
-

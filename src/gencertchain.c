@@ -34,10 +34,11 @@ static const char kHelpMessage[] =
     "-ocsp string\n"
     "  DER-encoded OCSP response file. If omitted, fetched from network.\n"
     "-out string\n"
-    "  Cert chain output file. If value is '-', sxg is written to stdout."
+    "  Cert chain output file."
+    " If value is '-', the cert chain is written to stdout."
     " (default \"cert.cbor\")\n"
     "-pem string\n"
-    "  The certificate PEM file for the Cert chain. (required)\n"
+    "  The certificate PEM file for the cert chain. (required)\n"
     "-sctDir string\n"
     "  Directory containing .sct files.\n";
 
@@ -138,7 +139,7 @@ static void serialize_ocsp_file(const char* ocsp_path, OCSP_RESPONSE** dst) {
   const uint8_t* ocsp_ptr = ocsp_content.data;
   d2i_OCSP_RESPONSE(dst, &ocsp_ptr, ocsp_content.size);
   if (dst == NULL) {
-    fprintf(stderr, "Failed to parse OCSP stapling: %s\n", ocsp_path);
+    fprintf(stderr, "Failed to parse OCSP response: %s\n", ocsp_path);
     exit(EXIT_FAILURE);
   }
 }
@@ -187,15 +188,15 @@ static void serialize_sct_files(const char* sct_path, sxg_buffer_t* sct_list) {
     }
   }
   total_size += files * 2;  // 16-bits length prefix on each sct.
+
   // Serialize sct payloads.
   bool success = sxg_write_int(total_size, 2, sct_list);
-    
   for (size_t i = 0; i < files && success; ++i) {
     success = success && sxg_write_int(buffers[i].size, 2, sct_list) &&
               sxg_write_buffer(&buffers[i], sct_list);
   }
 
-
+  // Release sct payloads.
   for (size_t i = 0; i < files; ++i) {
     sxg_buffer_release(&buffers[i]);
   }
@@ -241,8 +242,8 @@ static void load_x509_certs(const char* filepath,
     exit(EXIT_FAILURE);
   }
   cert = issuer;
-  while (cert) {
-    sxg_buffer_t empty_buffer = sxg_empty_buffer();
+  const sxg_buffer_t empty_buffer = sxg_empty_buffer();
+  while (cert != NULL) {
     if (!sxg_cert_chain_append_cert(cert, NULL, &empty_buffer, chain)) {
       fprintf(stderr, "Failed to append certificate: %s\n", filepath);
       exit(EXIT_FAILURE);
