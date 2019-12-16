@@ -295,7 +295,7 @@ void write_cert_chain(const sxg_cert_chain_t* chain,
     perror("fclose");
     exit(EXIT_FAILURE);
   }
-j
+
   sxg_buffer_release(&result);
 }
 
