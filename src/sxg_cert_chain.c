@@ -238,14 +238,14 @@ bool sxg_cert_chain_append_cert(X509* cert,
   return true;
 }
 
-bool sxg_write_array_cbor_header(size_t length, sxg_buffer_t* target) {
+static bool sxg_write_array_cbor_header(uint64_t length, sxg_buffer_t* target) {
   if (length <= 0x17) {
     return sxg_write_byte(0x80 + length, target);
   } else if (length <= 0xff) {
     return sxg_write_byte(0x98, target) && sxg_write_int(length, 1, target);
   } else if (length <= 0xffff) {
     return sxg_write_byte(0x99, target) && sxg_write_int(length, 2, target);
-  } else if (length <= 0xffffffff) {
+  } else if (length <= 0xffffffffULL) {
     return sxg_write_byte(0x9a, target) && sxg_write_int(length, 4, target);
   } else {
     return sxg_write_byte(0x9b, target) && sxg_write_int(length, 8, target);

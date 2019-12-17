@@ -44,7 +44,7 @@ bool sxg_write_utf8string_cbor(const char* string, sxg_buffer_t* target);
 
 // Appends the magic header for a byte string (for internal use).
 // Returns true on success.
-bool sxg_write_cbor_header(size_t length, sxg_buffer_t* target);
+bool sxg_write_cbor_header(uint64_t length, sxg_buffer_t* target);
 
 // Appends a byte string encoded in CBOR. Returns true on success.
 bool sxg_write_bytes_cbor(const uint8_t* bytes, size_t length,

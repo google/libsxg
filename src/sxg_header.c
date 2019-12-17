@@ -170,7 +170,7 @@ static int header_encoding_order(const void* a, const void* b) {
   }
 }
 
-bool sxg_write_cbor_map_header(size_t size, sxg_buffer_t* target) {
+bool sxg_write_cbor_map_header(uint64_t size, sxg_buffer_t* target) {
   // https://tools.ietf.org/html/rfc7049#appendix-B
   // It writes cbor header for map.
   if (size <= 0x17) {
@@ -179,7 +179,7 @@ bool sxg_write_cbor_map_header(size_t size, sxg_buffer_t* target) {
     return sxg_write_byte(0xb8, target) && sxg_write_int(size, 1, target);
   } else if (size <= 0xffff) {
     return sxg_write_byte(0xb9, target) && sxg_write_int(size, 2, target);
-  } else if (size <= 0xffffffff) {
+  } else if (size <= 0xffffffffULL) {
     return sxg_write_byte(0xba, target) && sxg_write_int(size, 4, target);
   } else {
     return sxg_write_byte(0xbb, target) && sxg_write_int(size, 8, target);

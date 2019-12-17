@@ -192,7 +192,7 @@ static void serialize_sct_files(const char* sct_path, sxg_buffer_t* sct_list) {
   // Serialize sct payloads.
   bool success = sxg_write_int(total_size, 2, sct_list);
   for (size_t i = 0; i < files && success; ++i) {
-    success = success && sxg_write_int(buffers[i].size, 2, sct_list) &&
+    success = sxg_write_int(buffers[i].size, 2, sct_list) &&
               sxg_write_buffer(&buffers[i], sct_list);
   }
 

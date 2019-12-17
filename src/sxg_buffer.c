@@ -136,7 +136,7 @@ bool sxg_write_string(const char* string, sxg_buffer_t* target) {
   return sxg_write_bytes((const uint8_t*)string, strlen(string), target);
 }
 
-bool sxg_write_cbor_header(size_t length, sxg_buffer_t* target) {
+bool sxg_write_cbor_header(uint64_t length, sxg_buffer_t* target) {
   if (length <= 0x17) {
     return sxg_write_byte(0x40 + length, target);
   } else if (length <= 0xff) {

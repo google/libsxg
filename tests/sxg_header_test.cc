@@ -84,7 +84,7 @@ TEST(SxgHeaderTest, WriteInteger) {
 TEST(SxgHeaderTest, WriteBigInteger) {
   sxg_header_t header = sxg_empty_header();
 
-  EXPECT_TRUE(sxg_header_append_integer("num", 0xffffffffffffffff, &header));
+  EXPECT_TRUE(sxg_header_append_integer("num", 0xffffffffffffffffULL, &header));
   EXPECT_EQ(1u, header.size);
   EXPECT_EQ(std::string("num"), header.entries[0].key);
   EXPECT_EQ(std::string("18446744073709551615"),
@@ -172,13 +172,13 @@ TEST(SxgHeaderTest, CborHeader) {
   // 0x010000 is represented in 5 bytes.
   EXPECT_EQ(std::string("\xba\x00\x01\x00\x00", 5), GetMapHeader(0x10000));
   EXPECT_EQ("\xba\x12\x34\x56\x78", GetMapHeader(0x12345678));
-  EXPECT_EQ("\xba\xff\xff\xff\xff", GetMapHeader(0xffffffff));
+  EXPECT_EQ("\xba\xff\xff\xff\xff", GetMapHeader(0xffffffffULL));
 
   // 0x0100000000 is represented in 9 bytes.
   EXPECT_EQ(std::string("\xbb\x00\x00\x00\x01\x00\x00\x00\x00", 9),
             GetMapHeader(0x100000000));
   EXPECT_EQ("\xbb\xff\xff\xff\xff\xff\xff\xff\xff",
-            GetMapHeader(0xffffffffffffffff));
+            GetMapHeader(0xffffffffffffffffULL));
 }
 
 TEST(SxgHeaderTest, SerializeInCbor) {

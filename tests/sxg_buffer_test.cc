@@ -155,10 +155,10 @@ TEST(SxgBufferTest, WriteBigEndianInt) {
   EXPECT_EQ("\xff\xff", IntToString(0xffff, 2));
 
   EXPECT_EQ(std::string("\x00\x00\x00\x2a", 4), IntToString(42, 4));
-  EXPECT_EQ("\xff\xff\xff\xff", IntToString(0xffffffff, 4));
+  EXPECT_EQ("\xff\xff\xff\xff", IntToString(0xffffffffULL, 4));
 
   EXPECT_EQ("\xff\xff\xff\xff\xff\xff\xff\xff",
-            IntToString(0xffffffffffffffff, 8));
+            IntToString(0xffffffffffffffffULL, 8));
 }
 
 static std::string HeaderToString(size_t length) {
@@ -190,13 +190,13 @@ TEST(SxgBufferTest, WriteCborHeader) {
   // 0x010000 is represented in 5 bytes.
   EXPECT_EQ(std::string("\x5a\x00\x01\x00\x00", 5), HeaderToString(0x10000));
   EXPECT_EQ("\x5a\x12\x34\x56\x78", HeaderToString(0x12345678));
-  EXPECT_EQ("\x5a\xff\xff\xff\xff", HeaderToString(0xffffffff));
+  EXPECT_EQ("\x5a\xff\xff\xff\xff", HeaderToString(0xffffffffULL));
 
   // 0x0100000000 is represented in 9 bytes.
   EXPECT_EQ(std::string("\x5b\x00\x00\x00\x01\x00\x00\x00\x00", 9),
             HeaderToString(0x100000000));
   EXPECT_EQ("\x5b\xff\xff\xff\xff\xff\xff\xff\xff",
-            HeaderToString(0xffffffffffffffff));
+            HeaderToString(0xffffffffffffffffULL));
 }
 
 TEST(SxgBufferTest, WriteStringCbor) {

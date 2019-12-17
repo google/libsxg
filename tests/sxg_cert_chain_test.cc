@@ -84,9 +84,7 @@ TEST_F(CertChainTest, SendRequest) {
   BIO *mem = BIO_new_fd(fds[1], /*close_flag*/1);
   SetEcdsa256();
   OCSP_RESPONSE* result = nullptr;
-  std::string buff;
-  buff.resize(4096);
-  memset(&buff[0], 0, 4096);
+  std::string buff(4096, '\0');
   const uint8_t kExpectedBody[] =
       "\x30\x6d\x30\x6b\x30\x69\x30\x67\x30\x65\x30\x0d\x06\x09\x60\x86\x48\x01"
       "\x65\x03\x04\x02\x01\x05\x00\x04\x20\x46\xbb\x3c\xe9\x41\x2a\x83\x6b\x58"
