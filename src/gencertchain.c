@@ -32,7 +32,7 @@ static const char kHelpMessage[] =
     "-help\n"
     "  Show this message.\n"
     "-ocsp string\n"
-    "  DER-encoded OCSP response file. If omitted, fetched from network.\n"
+    "  DER-encoded OCSP response file. If omitted, it fetches from network.\n"
     "-out string\n"
     "  Cert chain output file."
     " If value is '-', the cert chain is written to stdout."
@@ -133,7 +133,7 @@ static void load_file(const char* filepath, sxg_buffer_t* dst) {
   fclose(file);
 }
 
-static void serialize_ocsp_file(const char* ocsp_path, OCSP_RESPONSE** dst) {
+static void parse_ocsp_file(const char* ocsp_path, OCSP_RESPONSE** dst) {
   sxg_buffer_t ocsp_content = sxg_empty_buffer();
   load_file(ocsp_path, &ocsp_content);
   const uint8_t* ocsp_ptr = ocsp_content.data;
@@ -154,7 +154,7 @@ static void make_glob_pattern(const char* base_path, sxg_buffer_t* dst) {
   }
 }
 
-static void serialize_sct_files(const char* sct_path, sxg_buffer_t* sct_list) {
+static void parse_sct_files(const char* sct_path, sxg_buffer_t* sct_list) {
   glob_t glob_result;
 
   // Load all sct files at sct_path into sxg_buffer_t array.
@@ -189,7 +189,7 @@ static void serialize_sct_files(const char* sct_path, sxg_buffer_t* sct_list) {
   }
   total_size += files * 2;  // 16-bits length prefix on each sct.
 
-  // Serialize sct payloads.
+  // Parse sct payloads.
   bool success = sxg_write_int(total_size, 2, sct_list);
   for (size_t i = 0; i < files && success; ++i) {
     success = sxg_write_int(buffers[i].size, 2, sct_list) &&
@@ -203,7 +203,7 @@ static void serialize_sct_files(const char* sct_path, sxg_buffer_t* sct_list) {
   OPENSSL_free(buffers);
   globfree(&glob_result);
   if (!success) {
-    fprintf(stderr, "Failed to serialize sct files: %s\n", sct_path);
+    fprintf(stderr, "Failed to parse sct files: %s\n", sct_path);
     exit(EXIT_FAILURE);
   }
 }
@@ -221,18 +221,18 @@ static void load_x509_certs(const char* filepath,
   X509* issuer = PEM_read_X509(certfile, NULL, NULL, NULL);
   OCSP_RESPONSE* ocsp;
 
-  // Load OCSP response.
+  // Load specified OCSP response.
   if (ocsp_path != NULL) {
-    serialize_ocsp_file(ocsp_path, &ocsp);
+    parse_ocsp_file(ocsp_path, &ocsp);
   } else if (!sxg_fetch_ocsp_response(cert, issuer, &ocsp)) {
     fprintf(stderr, "Failed to fetch OCSP response: %s\n", filepath);
     exit(EXIT_FAILURE);
   }
 
-  // Load SCT List required.
+  // Load specified SCT List.
   sxg_buffer_t sct_list = sxg_empty_buffer();
   if (sct_path != NULL) {
-    serialize_sct_files(sct_path, &sct_list);
+    parse_sct_files(sct_path, &sct_list);
     sxg_buffer_dump(&sct_list);
   }
 
@@ -265,7 +265,7 @@ void write_cert_chain(const sxg_cert_chain_t* chain,
                       const char* output) {
   sxg_buffer_t result = sxg_empty_buffer();
   if (!sxg_write_cert_chain_cbor(chain, &result)) {
-    fprintf(stderr, "Failed to serialize cert chain\n");
+    fprintf(stderr, "Failed to write cert chain\n");
     exit(EXIT_FAILURE);
   }
 

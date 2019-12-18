@@ -34,7 +34,7 @@ bool sxg_ensure_free_capacity_internal(size_t size, size_t desired_margin,
 // range from 1 to 8. Returns true on success.
 bool sxg_write_int(uint64_t num, int nbytes, sxg_buffer_t* target);
 
-// Appends the magic header for a utf-8 string (for internal use).
+// Appends the initial bytes for a utf-8 string (for internal use).
 // Returns true on success.
 bool sxg_write_utf8_cbor_header(uint64_t length, sxg_buffer_t* target);
 
@@ -42,7 +42,7 @@ bool sxg_write_utf8_cbor_header(uint64_t length, sxg_buffer_t* target);
 // Returns true on success.
 bool sxg_write_utf8string_cbor(const char* string, sxg_buffer_t* target);
 
-// Appends the magic header for a byte string (for internal use).
+// Appends the initial bytes for a byte string (for internal use).
 // Returns true on success.
 bool sxg_write_cbor_header(uint64_t length, sxg_buffer_t* target);
 

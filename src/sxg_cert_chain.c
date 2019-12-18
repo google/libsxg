@@ -82,11 +82,7 @@ static AUTHORITY_INFO_ACCESS* extract_aia_info(X509_EXTENSION* ext) {
   if (ext == NULL || OBJ_cmp(X509_EXTENSION_get_object(ext), kAiaOid) != 0) {
     return NULL;
   }
-  AUTHORITY_INFO_ACCESS* aia_info = X509V3_EXT_d2i(ext);
-  if (aia_info == NULL) {
-    return NULL;
-  }
-  return aia_info;
+  return (AUTHORITY_INFO_ACCESS*)X509V3_EXT_d2i(ext);
 }
 
 bool sxg_extract_ocsp_url(X509* cert, sxg_buffer_t* dst) {
