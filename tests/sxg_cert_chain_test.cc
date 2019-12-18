@@ -55,10 +55,10 @@ class CertChainTest : public ::testing::Test {
     fclose(certfile);
   };
   void TearDown() {
-    if (cert_) {
+    if (cert_ != nullptr) {
       X509_free(cert_);
     }
-    if (issuer_) {
+    if (issuer_ != nullptr) {
       X509_free(issuer_);
     }
   }
