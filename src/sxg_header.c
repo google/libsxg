@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "libsxg/internal/sxg_buffer.h"
+#include "libsxg/internal/sxg_cbor.h"
 
 sxg_header_t sxg_empty_header() {
   const sxg_header_t structure = {NULL, 0, 0};
@@ -170,22 +171,6 @@ static int header_encoding_order(const void* a, const void* b) {
   }
 }
 
-bool sxg_write_cbor_map_header(uint64_t size, sxg_buffer_t* target) {
-  // https://tools.ietf.org/html/rfc7049#appendix-B
-  // It writes cbor header for map.
-  if (size <= 0x17) {
-    return sxg_write_byte(0xa0 + size, target);
-  } else if (size <= 0xff) {
-    return sxg_write_byte(0xb8, target) && sxg_write_int(size, 1, target);
-  } else if (size <= 0xffff) {
-    return sxg_write_byte(0xb9, target) && sxg_write_int(size, 2, target);
-  } else if (size <= 0xffffffffULL) {
-    return sxg_write_byte(0xba, target) && sxg_write_int(size, 4, target);
-  } else {
-    return sxg_write_byte(0xbb, target) && sxg_write_int(size, 8, target);
-  }
-}
-
 bool sxg_header_serialize_cbor(const sxg_header_t* src, sxg_buffer_t* dst) {
   const size_t size = src->size;
 
@@ -201,7 +186,7 @@ bool sxg_header_serialize_cbor(const sxg_header_t* src, sxg_buffer_t* dst) {
     qsort(entries, size, sizeof(sxg_kvp_t), header_encoding_order);
   }
 
-  bool success = sxg_write_cbor_map_header(size, dst);
+  bool success = sxg_write_map_cbor_header(size, dst);
   for (size_t i = 0; i < size && success; ++i) {
     success = success && sxg_write_bytes_cbor((const uint8_t*)entries[i].key,
                                               strlen(entries[i].key), dst);
