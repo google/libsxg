@@ -13,7 +13,7 @@ readonly DESTDIR="${PWD}/output"
 readonly REPOSITORY="$1"
 readonly WORKDIR="$(mktemp -d --tmpdir build_deb.XXXXXX)"
 readonly NAME='libsxg'
-readonly VERSION='0.1'
+readonly VERSION='0.2'
 readonly TARNAME="${NAME}_${VERSION}"
 
 echo "Working in ${WORKDIR}"

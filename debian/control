@@ -13,7 +13,7 @@ Vcs-Browser: https://github.com/google/libsxg
 Homepage: https://github.com/google/libsxg
 Rules-Requires-Root: no
 
-Package: libsxg0.1
+Package: libsxg0.2
 Architecture: any
 Multi-Arch: same
 Depends: libssl1.1 (>=1.1.1),
@@ -31,8 +31,7 @@ Package: libsxg-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libssl-dev (>=1.1.1),
-         libsxg0.1 (= ${binary:Version}),
+Depends: libsxg0.2 (= ${binary:Version}),
          ${misc:Depends}
 Description: Development files for Signed HTTP Exchange library
  With development files, you can build your own SXG applications.
@@ -41,10 +40,11 @@ Package: sxg-util
 Section: web
 Architecture: any
 Multi-Arch: foreign
-Depends: libssl1.1 (>=1.1.1),
-         libsxg0.1 (= ${binary:Version}),
+Depends: libsxg0.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Description: Signed HTTP Exchange utilities to manipurate SXG files
  gensxg enables you to generate SXG file on command line.
  You need SXG certificate and private key to generate proper SXG file.
+ gencertchain enables you to generate Certificate Chain file.
+ You need SXG certificate to generate proper Certificate Chain file.
