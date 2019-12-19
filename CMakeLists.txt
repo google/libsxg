@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-project (sxg)
+project (sxg LANGUAGES C CXX)
 
 set (CMAKE_PROJECT_VERSION "0")
 set (CMAKE_PROJECT_VERSION_MAJOR "0")
