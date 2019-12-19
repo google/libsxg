@@ -126,8 +126,8 @@ target_link_libraries(
 set_target_properties (sxg PROPERTIES PUBLIC_HEADER "${HEADERS}")
 install (
   TARGETS sxg
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   COMPONENT library
 )
 install (
@@ -137,7 +137,7 @@ install (
 )
 install (
   TARGETS gensxg
-  RUNTIME DESTINATION bin
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 ########################################
