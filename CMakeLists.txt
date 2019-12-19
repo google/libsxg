@@ -23,8 +23,8 @@ set (CMAKE_PROJECT_VERSION_PATCH "0")
 option (RUN_TEST
   "If false, build libsxg without building tests.\
   Building tests of libsxg requires more recent version of cmake (>= 3.13).\
-  Tests include fuzzer which is currently supported only in clang++, \
-  so on other compilers, such as g++, fuzzer will be disabled automatically."
+  Tests include fuzzer will be disabled automatically if it is not supported
+  by the compiler."
   TRUE
 )
 
