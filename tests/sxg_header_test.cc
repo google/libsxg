@@ -18,6 +18,7 @@
 
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_buffer.h"
+#include "libsxg/internal/sxg_cbor.h"
 #include "libsxg/internal/sxg_header.h"
 #include "test_util.h"
 
@@ -143,42 +144,6 @@ TEST(SxgHeaderTest, Merge) {
 
   sxg_header_release(&header1);
   sxg_header_release(&header2);
-}
-
-std::string GetMapHeader(size_t length) {
-  sxg_buffer_t buf = sxg_empty_buffer();
-  EXPECT_TRUE(sxg_write_cbor_map_header(length, &buf));
-  const std::string header = BufferToString(buf);
-  sxg_buffer_release(&buf);
-  return header;
-}
-
-TEST(SxgHeaderTest, CborHeader) {
-  EXPECT_EQ("\xa0", GetMapHeader(0));
-  EXPECT_EQ("\xa3", GetMapHeader(3));
-
-  // 0xb7 is the biggest number represented in 1 byte.
-  EXPECT_EQ("\xb7", GetMapHeader(0x17));
-
-  // 0xb8 is the smallest number represented in 2 bytes.
-  EXPECT_EQ("\xb8\x18", GetMapHeader(0x18));
-  EXPECT_EQ("\xb8\xff", GetMapHeader(0xff));
-
-  // 0x0100 is represented in 3 bytes.
-  EXPECT_EQ(std::string("\xb9\x01\x00", 3), GetMapHeader(0x100));
-  EXPECT_EQ("\xb9\xd3\xd7", GetMapHeader(0xd3d7));
-  EXPECT_EQ("\xb9\xff\xff", GetMapHeader(0xffff));
-
-  // 0x010000 is represented in 5 bytes.
-  EXPECT_EQ(std::string("\xba\x00\x01\x00\x00", 5), GetMapHeader(0x10000));
-  EXPECT_EQ("\xba\x12\x34\x56\x78", GetMapHeader(0x12345678));
-  EXPECT_EQ("\xba\xff\xff\xff\xff", GetMapHeader(0xffffffffULL));
-
-  // 0x0100000000 is represented in 9 bytes.
-  EXPECT_EQ(std::string("\xbb\x00\x00\x00\x01\x00\x00\x00\x00", 9),
-            GetMapHeader(0x100000000));
-  EXPECT_EQ("\xbb\xff\xff\xff\xff\xff\xff\xff\xff",
-            GetMapHeader(0xffffffffffffffffULL));
 }
 
 TEST(SxgHeaderTest, SerializeInCbor) {

@@ -58,6 +58,7 @@ add_library(
   SHARED
     src/sxg_buffer.c
     src/sxg_buffer_debug.c
+    src/sxg_cbor.c
     src/sxg_cert_chain.c
     src/sxg_codec.c
     src/sxg_generate.c
@@ -235,6 +236,7 @@ endfunction ()
 if (RUN_TEST)
   configure_test (nfail_malloc_test)
   configure_test (sxg_buffer_test)
+  configure_test (sxg_cbor_test)
   configure_test (sxg_cert_chain_test)
   configure_test (sxg_codec_test)
   configure_test (sxg_encoded_response_test)

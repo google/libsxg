@@ -19,6 +19,7 @@
 
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_buffer.h"
+#include "libsxg/internal/sxg_cbor.h"
 #include "test_util.h"
 
 namespace {
@@ -163,7 +164,7 @@ TEST(SxgBufferTest, WriteBigEndianInt) {
 
 static std::string HeaderToString(size_t length) {
   sxg_buffer_t buf = sxg_empty_buffer();
-  if (!sxg_write_cbor_header(length, &buf)) {
+  if (!sxg_write_bytes_cbor_header(length, &buf)) {
     return "";
   }
   const std::string header = BufferToString(buf);

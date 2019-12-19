@@ -26,10 +26,6 @@
 extern "C" {
 #endif
 
-// Appends the header for a map (visible for testing).
-// Returns true on success.
-bool sxg_write_cbor_map_header(size_t size, sxg_buffer_t* target);
-
 // Generates data for SXG's signedHeader. Returns true on success.
 bool sxg_header_serialize_cbor(const sxg_header_t* from, sxg_buffer_t* dst);
 

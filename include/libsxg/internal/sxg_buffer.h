@@ -34,22 +34,6 @@ bool sxg_ensure_free_capacity_internal(size_t size, size_t desired_margin,
 // range from 1 to 8. Returns true on success.
 bool sxg_write_int(uint64_t num, int nbytes, sxg_buffer_t* target);
 
-// Appends the initial bytes for a utf-8 string (for internal use).
-// Returns true on success.
-bool sxg_write_utf8_cbor_header(uint64_t length, sxg_buffer_t* target);
-
-// Appends utf-8 encoded string to the buffer. `string` must be null terminated.
-// Returns true on success.
-bool sxg_write_utf8string_cbor(const char* string, sxg_buffer_t* target);
-
-// Appends the initial bytes for a byte string (for internal use).
-// Returns true on success.
-bool sxg_write_cbor_header(uint64_t length, sxg_buffer_t* target);
-
-// Appends a byte string encoded in CBOR. Returns true on success.
-bool sxg_write_bytes_cbor(const uint8_t* bytes, size_t length,
-                          sxg_buffer_t* target);
-
 // Prints the content of the buffer to stdout in a hexdump-like format.
 void sxg_buffer_dump(const sxg_buffer_t* target);
 

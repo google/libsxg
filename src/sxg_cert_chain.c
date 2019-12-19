@@ -29,7 +29,7 @@
 #include <sys/time.h>
 
 #include "libsxg/internal/sxg_buffer.h"
-#include "libsxg/internal/sxg_header.h"
+#include "libsxg/internal/sxg_cbor.h"
 #include "libsxg/sxg_buffer.h"
 
 sxg_cert_t sxg_empty_cert() {
@@ -234,21 +234,6 @@ bool sxg_cert_chain_append_cert(X509* cert,
   return true;
 }
 
-static bool sxg_write_array_cbor_header(uint64_t length, sxg_buffer_t* target) {
-  if (length <= 0x17) {
-    return sxg_write_byte(0x80 + length, target);
-  } else if (length <= 0xff) {
-    return sxg_write_byte(0x98, target) && sxg_write_int(length, 1, target);
-  } else if (length <= 0xffff) {
-    return sxg_write_byte(0x99, target) && sxg_write_int(length, 2, target);
-  } else if (length <= 0xffffffffULL) {
-    return sxg_write_byte(0x9a, target) && sxg_write_int(length, 4, target);
-  } else {
-    return sxg_write_byte(0x9b, target) && sxg_write_int(length, 8, target);
-  }
-  return false;
-}
-
 static bool sxg_get_x509_serialized_size(X509* cert, size_t* size) {
   const int len = i2d_X509(cert, NULL);
   if (len <= 0) {
@@ -265,7 +250,6 @@ static bool sxg_serialize_x509(X509* cert, uint8_t* dst) {
   }
   return true;
 }
-
 static size_t sxg_cert_entries(const sxg_cert_t* cert) {
   return (cert->certificate != NULL ? 1 : 0) +
       (cert->ocsp_response != NULL ? 1 : 0) +
@@ -276,7 +260,7 @@ static bool sxg_write_x509_cbor(X509* cert, sxg_buffer_t* dst) {
   size_t serialized_size;
   bool success =
       sxg_get_x509_serialized_size(cert, &serialized_size) &&
-      sxg_write_cbor_header(serialized_size, dst) &&
+      sxg_write_bytes_cbor_header(serialized_size, dst) &&
       sxg_buffer_resize(dst->size + serialized_size, dst) &&
       sxg_serialize_x509(cert, dst->data + dst->size - serialized_size);
   return success;
@@ -305,7 +289,7 @@ static bool sxg_write_ocsp_response_cbor(OCSP_RESPONSE* ocsp,
   size_t serialized_size;
   bool success =
       sxg_get_ocsp_response_serialized_size(ocsp, &serialized_size) &&
-      sxg_write_cbor_header(serialized_size, dst) &&
+      sxg_write_bytes_cbor_header(serialized_size, dst) &&
       sxg_buffer_resize(dst->size + serialized_size, dst) &&
       sxg_serialize_ocsp_response(ocsp,
                                   dst->data + dst->size - serialized_size);
@@ -321,11 +305,11 @@ bool sxg_write_cert_chain_cbor(const sxg_cert_chain_t* chain,
   for (size_t i = 0; i < chain->size && success; ++i) {
     sxg_cert_t* entry = &chain->certs[i];
     success = success &&
-              sxg_write_cbor_map_header(sxg_cert_entries(entry), dst) &&
+              sxg_write_map_cbor_header(sxg_cert_entries(entry), dst) &&
               entry->certificate != NULL;
     if (entry->sct_list.size > 0) {
       success = success && sxg_write_utf8string_cbor("sct", dst) &&
-                sxg_write_cbor_header(entry->sct_list.size, dst) &&
+                sxg_write_bytes_cbor_header(entry->sct_list.size, dst) &&
                 sxg_write_buffer(&entry->sct_list, dst);
     }
     success = success && sxg_write_utf8string_cbor("cert", dst) &&
