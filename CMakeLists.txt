@@ -29,7 +29,7 @@ option (RUN_TEST
 )
 
 if (NOT CMAKE_BUILD_TYPE)
-  set (CMAKE_BUILD_TYPE Release)
+  set (CMAKE_BUILD_TYPE "Debug")
 endif ()
 
 if (RUN_TEST)
@@ -42,10 +42,8 @@ endif ()
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11 -fPIC")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c99 -fPIC")
 
-if (CMAKE_BUILD_TYPE EQUAL "DEBUG")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -ggdb")
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -ggdb")
-endif ()
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
+set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
 
 include (ExternalProject)
 set_property(
