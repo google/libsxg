@@ -17,7 +17,7 @@ project (sxg LANGUAGES C CXX)
 
 set (CMAKE_PROJECT_VERSION "0")
 set (CMAKE_PROJECT_VERSION_MAJOR "0")
-set (CMAKE_PROJECT_VERSION_MINOR "1")
+set (CMAKE_PROJECT_VERSION_MINOR "2")
 set (CMAKE_PROJECT_VERSION_PATCH "0")
 
 option (RUN_TEST
@@ -123,6 +123,12 @@ target_link_libraries(
 ## Installing
 ########################################
 
+set_target_properties(
+  sxg
+  PROPERTIES VERSION ${CMAKE_PROJECT_VERSION}
+  SOVERSION "${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}"
+)
+
 set_target_properties (sxg PROPERTIES PUBLIC_HEADER "${HEADERS}")
 install (
   TARGETS sxg
@@ -137,6 +143,10 @@ install (
 )
 install (
   TARGETS gensxg
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install (
+  TARGETS gencertchain
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
