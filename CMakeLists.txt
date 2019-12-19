@@ -50,17 +50,19 @@ set_property(
 
 find_package (OpenSSL REQUIRED)
 
-add_library(sxg
-  src/sxg_buffer.c
-  src/sxg_buffer_debug.c
-  src/sxg_cert_chain.c
-  src/sxg_codec.c
-  src/sxg_generate.c
-  src/sxg_raw_response.c
-  src/sxg_encoded_response.c
-  src/sxg_header.c
-  src/sxg_sig.c
-  src/sxg_signer_list.c
+add_library(
+  sxg
+  SHARED
+    src/sxg_buffer.c
+    src/sxg_buffer_debug.c
+    src/sxg_cert_chain.c
+    src/sxg_codec.c
+    src/sxg_generate.c
+    src/sxg_raw_response.c
+    src/sxg_encoded_response.c
+    src/sxg_header.c
+    src/sxg_sig.c
+    src/sxg_signer_list.c
 )
 
 target_include_directories(
