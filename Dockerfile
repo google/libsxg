@@ -18,7 +18,7 @@ RUN mkdir libsxg/docker_build -p && \
           -DCMAKE_C_COMPILER=clang \
           -DCMAKE_CXX_COMPILER=clang++ \
           -DCMAKE_INSTALL_PREFIX=/usr/local \
-          -DSKIP_TEST=TRUE && \
+          -DRUN_TEST=FALSE && \
     make sxg && \
     make install
 
