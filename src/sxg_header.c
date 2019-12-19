@@ -109,7 +109,9 @@ bool sxg_header_append_integer(const char* key, uint64_t num,
   size_t nbytes =
       snprintf(integer_buffer, sizeof(integer_buffer), "%" PRIu64, num);
 
-  assert(nbytes + 1 <= sizeof(integer_buffer));
+  if (nbytes > sizeof(integer_buffer)) {
+    return false;
+  }
 
   sxg_buffer_t* buf = get_or_create_buffer(key, target);
   return buf != NULL && sxg_write_string(integer_buffer, buf);

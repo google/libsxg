@@ -390,7 +390,11 @@ static void load_content(const char* filepath, sxg_buffer_t* buf) {
   }
   rewind(file);
   sxg_buffer_resize(filesize, buf);
-  fread(buf->data, sizeof(uint8_t), filesize, file);
+  int64_t nread = fread(buf->data, sizeof(uint8_t), filesize, file);
+  if (nread != filesize) {
+    fprintf(stderr, "fread %s: %s\n", filepath, strerror(errno));
+    exit(EXIT_FAILURE);
+  }
   fclose(file);
 }
 
