@@ -13,26 +13,30 @@
 # limitations under the License.
 
 
-project (sxg)
+project (sxg LANGUAGES C CXX)
 
 set (CMAKE_PROJECT_VERSION "0")
 set (CMAKE_PROJECT_VERSION_MAJOR "0")
 set (CMAKE_PROJECT_VERSION_MINOR "1")
 set (CMAKE_PROJECT_VERSION_PATCH "0")
 
+option (RUN_TEST
+  "If false, build libsxg without building tests.\
+  Building tests of libsxg requires more recent version of cmake (>= 3.13).\
+  Tests include fuzzer will be disabled automatically if it is not supported
+  by the compiler."
+  TRUE
+)
+
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "Debug")
 endif ()
 
-if (NOT DEFINED SKIP_TEST)
-  set (SKIP_TEST FALSE)
-endif ()
-
-if (SKIP_TEST)
-  cmake_minimum_required (VERSION 3.0)
-else ()
+if (RUN_TEST)
   # `target_link_options` used in fuzzing test requires 3.13
   cmake_minimum_required (VERSION 3.13)
+else ()
+  cmake_minimum_required (VERSION 3.0)
 endif ()
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11 -fPIC")
@@ -120,8 +124,8 @@ target_link_libraries(
 set_target_properties (sxg PROPERTIES PUBLIC_HEADER "${HEADERS}")
 install (
   TARGETS sxg
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   COMPONENT library
 )
 install (
@@ -131,13 +135,13 @@ install (
 )
 install (
   TARGETS gensxg
-  RUNTIME DESTINATION bin
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 ########################################
 ## Testing
 ########################################
-if (NOT SKIP_TEST)
+if (RUN_TEST)
   enable_testing ()
 
   file (COPY tests/testdata DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -226,7 +230,7 @@ function (configure_test test_name)
   add_sanitizer_test (${test_name})
 endfunction ()
 
-if (NOT SKIP_TEST)
+if (RUN_TEST)
   configure_test (nfail_malloc_test)
   configure_test (sxg_buffer_test)
   configure_test (sxg_cert_chain_test)
@@ -282,7 +286,7 @@ try_compile(fuzzer_available
   LINK_OPTIONS ${fuzzer_option}
 )
 
-if (NOT SKIP_TEST)
+if (RUN_TEST)
   if (fuzzer_available)
     configure_fuzzer(signer_fuzzer)
   else ()
