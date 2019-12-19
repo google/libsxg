@@ -23,6 +23,7 @@ static bool write_initial_bytes(uint8_t type_offset, uint64_t length,
                                 sxg_buffer_t* target) {
   // https://tools.ietf.org/html/rfc7049#appendix-B
   // It writes cbor header for the type.
+  // In SXG, using smallest type header as possible is required.
   if (length <= 0x17) {
     return sxg_write_byte(type_offset + length, target);
   } else if (length <= 0xff) {
