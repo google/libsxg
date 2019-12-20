@@ -97,12 +97,25 @@ typedef struct {
   int64_t duration;  /* Seconds from date. */
 } Options;
 
-static EVP_PKEY* load_private_key(const char* filepath) {
-  FILE* const keyfile = fopen(filepath, "r");
-  if (keyfile == NULL) {
+FILE* safe_fopen(const char* filepath, const char* mode) {
+  FILE* const file = fopen(filepath, mode);
+  if (file == NULL) {
     fprintf(stderr, "fopen %s: %s\n", filepath, strerror(errno));
     exit(EXIT_FAILURE);
   }
+  return file;
+}
+
+void safe_fwrite(const uint8_t* data, uint64_t size, FILE* out) {
+  const size_t written = fwrite(data, sizeof(uint8_t), size, out);
+  if (written != size) {
+    perror("fwrite");
+    exit(EXIT_FAILURE);
+  }
+}
+
+static EVP_PKEY* load_private_key(const char* filepath) {
+  FILE* const keyfile = safe_fopen(filepath, "r");
   EVP_PKEY* const private_key = PEM_read_PrivateKey(keyfile, NULL, NULL, NULL);
   if (private_key == NULL) {
     fprintf(stderr, "Failed to read private key: %s\n", filepath);
@@ -113,11 +126,7 @@ static EVP_PKEY* load_private_key(const char* filepath) {
 }
 
 static X509* load_x509_cert(const char* filepath) {
-  FILE* const certfile = fopen(filepath, "r");
-  if (certfile == NULL) {
-    fprintf(stderr, "fopen %s: %s\n", filepath, strerror(errno));
-    exit(EXIT_FAILURE);
-  }
+  FILE* const certfile = safe_fopen(filepath, "r");
   X509* const cert = PEM_read_X509(certfile, NULL, NULL, NULL);
   if (cert == NULL) {
     fprintf(stderr, "Failed to read certificate: %s\n", filepath);
@@ -128,11 +137,7 @@ static X509* load_x509_cert(const char* filepath) {
 }
 
 static EVP_PKEY* load_ed25519_pubkey(const char* filepath) {
-  FILE* const keyfile = fopen(filepath, "r");
-  if (keyfile == NULL) {
-    fprintf(stderr, "fopen %s: %s\n", filepath, strerror(errno));
-    exit(EXIT_FAILURE);
-  }
+  FILE* const keyfile = safe_fopen(filepath, "r");
   EVP_PKEY* const public_key = PEM_read_PUBKEY(keyfile, NULL, NULL, NULL);
   if (public_key == NULL) {
     fprintf(stderr, "Failed to read public key: %s\n", filepath);
@@ -374,11 +379,7 @@ static void load_signer(const Options* opt, sxg_signer_list_t* signers) {
 }
 
 static void load_content(const char* filepath, sxg_buffer_t* buf) {
-  FILE* const file = fopen(filepath, "rb");
-  if (file == NULL) {
-    fprintf(stderr, "fopen %s: %s\n", filepath, strerror(errno));
-    exit(EXIT_FAILURE);
-  }
+  FILE* const file = safe_fopen(filepath, "rb");
   if (fseek(file, 0, SEEK_END) != 0) {
     fprintf(stderr, "fseek %s: %s\n", filepath, strerror(errno));
     exit(EXIT_FAILURE);
@@ -390,7 +391,11 @@ static void load_content(const char* filepath, sxg_buffer_t* buf) {
   }
   rewind(file);
   sxg_buffer_resize(filesize, buf);
-  fread(buf->data, sizeof(uint8_t), filesize, file);
+  int64_t nread = fread(buf->data, sizeof(uint8_t), filesize, file);
+  if (nread != filesize) {
+    fprintf(stderr, "fread %s: %s\n", filepath, strerror(errno));
+    exit(EXIT_FAILURE);
+  }
   fclose(file);
 }
 
@@ -450,12 +455,7 @@ static void print_integrity_hash(const sxg_encoded_response_t* encoded) {
     fputs("Failed to calculate integrity hash.\n", stderr);
     exit(EXIT_FAILURE);
   }
-  size_t written =
-      fwrite(integrity.data, sizeof(uint8_t), integrity.size, stdout);
-  if (written != integrity.size) {
-    perror("fwrite stdout");
-    exit(EXIT_FAILURE);
-  }
+  safe_fwrite(integrity.data, integrity.size, stdout);
 }
 
 void write_sxg(const sxg_signer_list_t* signers,
@@ -478,18 +478,10 @@ void write_sxg(const sxg_signer_list_t* signers,
       exit(EXIT_FAILURE);
     }
   } else {
-    out = fopen(output, "wb");
-    if (out == NULL) {
-      perror("open file");
-      exit(EXIT_FAILURE);
-    }
+    out = safe_fopen(output, "wb");
   }
 
-  size_t written = fwrite(result.data, sizeof(uint8_t), result.size, out);
-  if (written != result.size) {
-    perror("fwrite");
-    exit(EXIT_FAILURE);
-  }
+  safe_fwrite(result.data, result.size, out);
 
   if (out != stdout && fclose(out) != 0) {
     perror("fclose");
