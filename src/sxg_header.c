@@ -105,13 +105,8 @@ bool sxg_header_append_buffer(const char* key, const sxg_buffer_t* value,
 
 bool sxg_header_append_integer(const char* key, uint64_t num,
                                sxg_header_t* target) {
-  char integer_buffer[22];
-  size_t nbytes =
-      snprintf(integer_buffer, sizeof(integer_buffer), "%" PRIu64, num);
-
-  if (nbytes > sizeof(integer_buffer)) {
-    return false;
-  }
+  char integer_buffer[21];  // len(str(2 ** 64 - 1)) = 20
+  snprintf(integer_buffer, sizeof(integer_buffer), "%" PRIu64, num);
 
   sxg_buffer_t* buf = get_or_create_buffer(key, target);
   return buf != NULL && sxg_write_string(integer_buffer, buf);
@@ -126,7 +121,6 @@ bool sxg_header_copy(const sxg_header_t* src, sxg_header_t* dst) {
   if (!ensure_free_capacity(src->size, &tmp)) {
     return false;
   }
-
   for (size_t i = 0; i < src->size; ++i) {
     sxg_kvp_t* const new_entry = &tmp.entries[tmp.size++];
     new_entry->key = OPENSSL_strdup(src->entries[i].key);
