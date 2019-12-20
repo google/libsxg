@@ -16,6 +16,7 @@ readonly NAME='libsxg'
 readonly VERSION='0.2'
 readonly TARNAME="${NAME}_${VERSION}"
 
+rm "${destdir}/*" -rf
 echo "Working in ${WORKDIR}"
 
 cd "${WORKDIR}"
@@ -32,7 +33,7 @@ dpkg-buildpackage
 mkdir -p "${DESTDIR}"
 cp -r ../* "${DESTDIR}"
 cd ..
-lintian -viI --pedantic libsxg_0.1-1_amd64.changes
+lintian -viI --pedantic ${NAME}_${VERSION}-1_amd64.changes
 cd ..
 
 echo "Full package built in ${WORKDIR}"

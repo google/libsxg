@@ -6,7 +6,7 @@ Build-Depends:
          cmake,
          ronn,
          libssl-dev,
-Standards-Version: 4.3.0
+Standards-Version: 4.4.1
 Section: libs
 Vcs-Git: https://github.com/google/libsxg.git
 Vcs-Browser: https://github.com/google/libsxg

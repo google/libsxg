@@ -29,6 +29,7 @@ override_dh_auto_configure:
 override_dh_auto_install:
 	mkdir -p debian/tmp/usr/share/man/man1
 	ronn  -r docs/gensxg.md --pipe > debian/tmp/usr/share/man/man1/gensxg.1
+	ronn  -r docs/gencertchain.md --pipe > debian/tmp/usr/share/man/man1/gencertchain.1
 	mkdir -p debian/tmp/usr/share/man/man3
 	cat docs/index.md \
 	    docs/sxg_buffer.md \
