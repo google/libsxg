@@ -6,7 +6,7 @@ A command-line tool for generating Certificate-Chain cbor file.
 
 This command generates an Certificate-Chain cbor file.
 
-```sh
+```ShellSession
 $ gencertchain -certificate ./prime256v1.pem > certchain.cbor
 ```
 # Options

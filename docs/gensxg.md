@@ -6,7 +6,7 @@ A command-line tool for generating SXG (Signed HTTP Exchanges).
 
 This command generates an SXG file for example.com.
 
-```sh
+```ShellSession
 $ gensxg -url https://example.com \
          -certUrl https://example.com/cert.cbor \
          -validityUrl https://example.com/validity.msg \
@@ -18,7 +18,7 @@ $ gensxg -url https://example.com \
 
 Calculate integrity hash value of some file.
 
-```sh
+```ShellSession
 $ gensxg -integrity \
          -content ./logo.png
          -contentType image/png
@@ -27,7 +27,7 @@ $ gensxg -integrity \
 
 SXG with subresource integrity.
 
-```sh
+```ShellSession
 $ gensxg -url https://example.com \
          -certUrl https://example.com/cert.cbor \
          -validityUrl https://example.com/validity.msg \
