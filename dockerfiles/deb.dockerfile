@@ -1,8 +1,10 @@
 ARG base_image
 FROM ${base_image}
+ARG repository
 
 LABEL maintainer "Hiroki Kumazaki <kumagi@google.com>"
 
+ADD ${repository} /libsxg
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -q \
                     build-essential \
@@ -18,4 +20,4 @@ RUN apt-get update && \
 ADD . /libsxg
 WORKDIR /libsxg
 
-ENTRYPOINT ["packaging/build_deb", "docker_output"]
+ENTRYPOINT ["packaging/build_deb", "/libsxg"]

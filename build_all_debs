@@ -6,6 +6,8 @@
 # Dockerfiles.
 
 set -ex
+
+readonly REPOSITORY="$1"
 readonly DEB_DOCKER="packaging/dockerfiles/deb.dockerfile"
 readonly DISTROS=(
   debian:buster-slim
