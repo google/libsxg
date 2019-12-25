@@ -28,14 +28,8 @@ override_dh_auto_configure:
 
 override_dh_auto_install:
 	mkdir -p debian/tmp/usr/share/man/man1
-	ronn  -r docs/gensxg.md --pipe > debian/tmp/usr/share/man/man1/gensxg.1
-	ronn  -r docs/gencertchain.md --pipe > debian/tmp/usr/share/man/man1/gencertchain.1
 	mkdir -p debian/tmp/usr/share/man/man3
-	cat docs/index.md \
-	    docs/sxg_buffer.md \
-	    docs/sxg_raw_response.md \
-	    docs/sxg_encoded_response.md \
-	    docs/sxg_signer_list.md \
-	    docs/sxg_generate.md > debian/tmp/libsxg.md
-	ronn -r debian/tmp/libsxg.md --pipe > debian/tmp/usr/share/man/man3/libsxg.3
+	cp docs/gensxg.1       debian/tmp/usr/share/man/man1/gensxg.1
+	cp docs/gencertchain.1 debian/tmp/usr/share/man/man1/gencertchain.1
+	cp docs/libsxg.3       debian/tmp/usr/share/man/man3/libsxg.3
 	dh_auto_install

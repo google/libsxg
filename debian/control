@@ -4,7 +4,6 @@ Maintainer: Hiroki Kumazaki <kumagi@google.com>
 Build-Depends:
          debhelper-compat (= 12),
          cmake,
-         ronn,
          libssl-dev,
 Standards-Version: 4.4.1
 Section: libs
