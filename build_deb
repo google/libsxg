@@ -20,7 +20,7 @@ rm "${destdir}/*" -rf
 echo "Working in ${WORKDIR}"
 
 cd "${WORKDIR}"
-git clone "${REPOSITORY}" libsxg-repo
+git clone -b add-man "${REPOSITORY}" libsxg-repo
 cp -r ${SRCDIR}/debian libsxg-repo
 cd libsxg-repo
 git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.orig.tar.gz" \
@@ -32,6 +32,7 @@ dpkg-buildpackage
 
 mkdir -p "${DESTDIR}"
 cp -r ../* "${DESTDIR}"
+rm -r "${DESTDIR}/libsxg-repo"
 cd ..
 lintian -viI --pedantic ${NAME}_${VERSION}-1_amd64.changes
 cd ..

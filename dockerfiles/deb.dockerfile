@@ -4,7 +4,6 @@ ARG repository
 
 LABEL maintainer "Hiroki Kumazaki <kumagi@google.com>"
 
-ADD ${repository} /libsxg
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -q \
                     build-essential \
@@ -14,10 +13,15 @@ RUN apt-get update && \
                     fakeroot \
                     git \
                     libssl-dev \
-                    lsb-release && \
+		    lintian \
+                    lsb-release \
+		    ronn && \
     rm -rf /var/lib/apt/lists/*
 
-ADD . /libsxg
-WORKDIR /libsxg
+ADD ${repository} /libsxg
+ADD . /packaging
+WORKDIR /packaging
 
-ENTRYPOINT ["packaging/build_deb", "/libsxg"]
+RUN sed -i -e "s/debuild -b/debuild -b -us -uc/" /packaging/build_deb
+
+ENTRYPOINT ["./build_deb", "/libsxg"]
