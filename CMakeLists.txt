@@ -107,6 +107,18 @@ install (TARGETS gensxg RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install (TARGETS gencertchain RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # ##############################################################################
+# Generate man files
+# ##############################################################################
+
+# This target requires ronn executable in your path.
+add_custom_target (
+  man
+  COMMAND ronn -r ${CMAKE_SOURCE_DIR}/docs/gencertchain.md --pipe > ${CMAKE_SOURCE_DIR}/docs/gencertchain.1 &&
+          ronn -r ${CMAKE_SOURCE_DIR}/docs/gensxg.md --pipe > ${CMAKE_SOURCE_DIR}/docs/gensxg.1 &&
+          ronn -r ${CMAKE_SOURCE_DIR}/docs/libsxg.md --pipe > ${CMAKE_SOURCE_DIR}/docs/libsxg.3
+  COMMENT "Generating roff files with ronn ...")
+
+# ##############################################################################
 # Linter
 # ##############################################################################
 

@@ -1,6 +1,4 @@
-# libsxg
-
-Signed HTTP Exchange (SXG) toolkit.
+# libsxg - Signed HTTP Exchange (SXG) toolkit
 
 ## Overview of SXG
 
