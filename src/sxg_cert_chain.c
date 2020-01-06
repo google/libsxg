@@ -16,16 +16,16 @@
 
 #include "libsxg/sxg_cert_chain.h"
 
-#include <stdint.h>
-#include <string.h>
-#include <sys/select.h>
 #include <openssl/asn1.h>
 #include <openssl/bio.h>
 #include <openssl/ocsp.h>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
-#include <openssl/x509v3.h>
 #include <openssl/x509_vfy.h>
+#include <openssl/x509v3.h>
+#include <stdint.h>
+#include <string.h>
+#include <sys/select.h>
 #include <sys/time.h>
 
 #include "libsxg/internal/sxg_buffer.h"
@@ -34,19 +34,16 @@
 
 sxg_cert_t sxg_empty_cert() {
   static const sxg_cert_t cert = {
-    .certificate = NULL,
-    .ocsp_response = NULL,
-    .sct_list = {NULL, 0, 0},
+      .certificate = NULL,
+      .ocsp_response = NULL,
+      .sct_list = {NULL, 0, 0},
   };
   return cert;
 }
 
 sxg_cert_chain_t sxg_empty_cert_chain() {
   static const sxg_cert_chain_t chain = {
-    .certs = NULL,
-    .size = 0,
-    .capacity = 0
-  };
+      .certs = NULL, .size = 0, .capacity = 0};
   return chain;
 }
 
@@ -63,9 +60,8 @@ static void sxg_cert_release(sxg_cert_t* target) {
 static bool ensure_free_capacity(size_t desired_margin,
                                  sxg_cert_chain_t* target) {
   return sxg_ensure_free_capacity_internal(
-      target->size, desired_margin, 8,
-      sizeof(sxg_cert_chain_t), &target->capacity,
-      (void**)&target->certs);
+      target->size, desired_margin, 8, sizeof(sxg_cert_chain_t),
+      &target->capacity, (void**)&target->certs);
 }
 
 void sxg_cert_chain_release(sxg_cert_chain_t* target) {
@@ -113,7 +109,7 @@ bool sxg_extract_ocsp_url(X509* cert, sxg_buffer_t* dst) {
             continue;
           }
           const bool success = sxg_write_bytes(uri->data, uri->length, dst) &&
-                         sxg_write_byte('\0', dst);
+                               sxg_write_byte('\0', dst);
           AUTHORITY_INFO_ACCESS_free(aia_info);
           return success;
         }
@@ -136,18 +132,18 @@ static bool wait_fd(int fd, bool read, bool write) {
   tv.tv_usec = 0;
   tv.tv_sec = 3;
   if (read) {
-    rv = select(fd + 1, (void *)&confds, NULL, NULL, &tv);
+    rv = select(fd + 1, (void*)&confds, NULL, NULL, &tv);
   } else if (write) {
-    rv = select(fd + 1, NULL, (void *)&confds, NULL, &tv);
+    rv = select(fd + 1, NULL, (void*)&confds, NULL, &tv);
   } else {
     rv = 1;
   }
   return rv != 0 &&  // Timeout on request.
-         rv != -1;  // Select error.
+         rv != -1;   // Select error.
 }
 
-bool sxg_execute_ocsp_request(BIO* io, const char* path,
-                              OCSP_CERTID* id, OCSP_RESPONSE** dst) {
+bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
+                              OCSP_RESPONSE** dst) {
   int fd;
   if (BIO_get_fd(io, &fd) < 0) {  // Can't get connection fd.
     return false;
@@ -155,22 +151,20 @@ bool sxg_execute_ocsp_request(BIO* io, const char* path,
   OCSP_REQ_CTX* const octx = OCSP_sendreq_new(io, path, NULL, -1);
   OCSP_REQUEST* const req = OCSP_REQUEST_new();
   bool success = OCSP_request_add0_id(req, id) &&
-                 OCSP_REQ_CTX_set1_req(octx, req) &&
-                 wait_fd(fd, false, true);
+                 OCSP_REQ_CTX_set1_req(octx, req) && wait_fd(fd, false, true);
   while (success) {
     if (OCSP_sendreq_nbio(dst, octx) != -1) {
       break;
     }
     success = success && wait_fd(fd, BIO_should_read(io), BIO_should_write(io));
   }
-  
+
   OCSP_REQUEST_free(req);
   OCSP_REQ_CTX_free(octx);
   return success;
 }
 
-static bool sxg_make_ocsp_session(const char* ocsp_url,
-                                  char** path,
+static bool sxg_make_ocsp_session(const char* ocsp_url, char** path,
                                   BIO** connection) {
   char* host;
   char* port;
@@ -186,7 +180,8 @@ static bool sxg_make_ocsp_session(const char* ocsp_url,
   if (use_ssl == 1) {
     SSL_CTX* const ssl_ctx = SSL_CTX_new(SSLv23_client_method());
     if (ssl_ctx == NULL) {
-      success = false;;
+      success = false;
+      ;
     } else {
       SSL_CTX_set_mode(ssl_ctx, SSL_MODE_AUTO_RETRY);
       *connection = BIO_push(BIO_new_ssl(ssl_ctx, 1), *connection);
@@ -206,19 +201,16 @@ bool sxg_fetch_ocsp_response(X509* cert, X509* issuer, OCSP_RESPONSE** dst) {
       sxg_extract_ocsp_url(cert, &ocsp_url) &&
       sxg_make_ocsp_session((const char*)ocsp_url.data, &path, &cbio) &&
       BIO_do_connect(cbio) > 0 &&
-      sxg_execute_ocsp_request(cbio,
-                               path,
-                               OCSP_cert_to_id(EVP_sha256(), cert, issuer),
-                               dst);
+      sxg_execute_ocsp_request(
+          cbio, path, OCSP_cert_to_id(EVP_sha256(), cert, issuer), dst);
 
-  sxg_buffer_release(&ocsp_url);  
+  sxg_buffer_release(&ocsp_url);
   OPENSSL_free(path);
   BIO_free(cbio);
   return success;
 }
 
-bool sxg_cert_chain_append_cert(X509* cert,
-                                OCSP_RESPONSE* ocsp_response,
+bool sxg_cert_chain_append_cert(X509* cert, OCSP_RESPONSE* ocsp_response,
                                 const sxg_buffer_t* sct_list,
                                 sxg_cert_chain_t* target) {
   X509_up_ref(cert);
@@ -252,8 +244,8 @@ static bool sxg_serialize_x509(X509* cert, uint8_t* dst) {
 }
 static size_t sxg_cert_entries(const sxg_cert_t* cert) {
   return (cert->certificate != NULL ? 1 : 0) +
-      (cert->ocsp_response != NULL ? 1 : 0) +
-      (cert->sct_list.data != NULL ? 1 : 0);
+         (cert->ocsp_response != NULL ? 1 : 0) +
+         (cert->sct_list.data != NULL ? 1 : 0);
 }
 
 static bool sxg_write_x509_cbor(X509* cert, sxg_buffer_t* dst) {

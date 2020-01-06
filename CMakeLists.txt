@@ -115,6 +115,14 @@ add_custom_target (
   COMMAND cmake-format -i ${CMAKE_SOURCE_DIR}/CMakeLists.txt
   COMMENT "Formating with cmake-format ...")
 
+# This target requires clang-format executable in your path.
+add_custom_target (
+  clang_format
+  COMMAND
+    cd ${CMAKE_SOURCE_DIR} && git ls-files *.{c,h,hpp,cpp,cc} | xargs
+    clang-format -style=file -i
+  COMMENT "Formating with clang-format ...")
+
 # ##############################################################################
 # Testing
 # ##############################################################################

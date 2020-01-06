@@ -9,20 +9,20 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <openssl/pem.h>
-#include <openssl/ocsp.h>
 #include <openssl/crypto.h>
+#include <openssl/ocsp.h>
+#include <openssl/pem.h>
 
 #include "libsxg.h"
 #include "libsxg/internal/sxg_buffer.h"
 
 static const struct option kOptions[] = {
-  { "help",         no_argument,       NULL, 'h' },
-  { "ocsp",         required_argument, NULL, 'p' },
-  { "out",          required_argument, NULL, 'o' },
-  { "pem",          required_argument, NULL, 'c' },
-  { "sctDir",       required_argument, NULL, 's' },
-  { 0,              0,                 0,     0  },
+    {"help", no_argument, NULL, 'h'},
+    {"ocsp", required_argument, NULL, 'p'},
+    {"out", required_argument, NULL, 'o'},
+    {"pem", required_argument, NULL, 'c'},
+    {"sctDir", required_argument, NULL, 's'},
+    {0, 0, 0, 0},
 };
 
 static const char kHelpMessage[] =
@@ -61,10 +61,7 @@ static Options parse_options(int argc, char* const argv[]) {
   Options result = init_default_options();
   int opt;
   int longindex;
-  while ((opt = getopt_long_only(argc,
-                                 argv,
-                                 "h:p:o:c:s",
-                                 kOptions,
+  while ((opt = getopt_long_only(argc, argv, "h:p:o:c:s", kOptions,
                                  &longindex)) != -1) {
     switch (opt) {
       case 'h':
@@ -90,23 +87,18 @@ static Options parse_options(int argc, char* const argv[]) {
   return result;
 }
 
-static bool is_empty(const char* str) {
-  return str == NULL || *str == '\0';
-}
+static bool is_empty(const char* str) { return str == NULL || *str == '\0'; }
 
 static bool validate(const Options* opt) {
   bool valid = true;
   if (is_empty(opt->pem)) {
-    fprintf(stderr,
-            "error: -pem must be specified.\n");
+    fprintf(stderr, "error: -pem must be specified.\n");
     valid = false;
   }
   return valid;
 }
 
-static void print_help() {
-  fputs(kHelpMessage, stderr);
-}
+static void print_help() { fputs(kHelpMessage, stderr); }
 
 static void load_file(const char* filepath, sxg_buffer_t* dst) {
   FILE* file = fopen(filepath, "rb");
@@ -146,8 +138,7 @@ static void parse_ocsp_file(const char* ocsp_path, OCSP_RESPONSE** dst) {
 
 static void make_glob_pattern(const char* base_path, sxg_buffer_t* dst) {
   sxg_buffer_release(dst);
-  if (!sxg_write_string(base_path, dst) ||
-      !sxg_write_string("/*.sct", dst) ||
+  if (!sxg_write_string(base_path, dst) || !sxg_write_string("/*.sct", dst) ||
       !sxg_write_byte('\0', dst)) {
     fprintf(stderr, "Failed to make glob pattern.\n");
     exit(EXIT_FAILURE);
@@ -160,15 +151,16 @@ static void parse_sct_files(const char* sct_path, sxg_buffer_t* sct_list) {
   // Load all sct files at sct_path into sxg_buffer_t array.
   sxg_buffer_t glob_pattern = sxg_empty_buffer();
   make_glob_pattern(sct_path, &glob_pattern);
-  if (glob((const char*)glob_pattern.data, GLOB_ERR | GLOB_NOESCAPE,
-           NULL, &glob_result) != 0) {
+  if (glob((const char*)glob_pattern.data, GLOB_ERR | GLOB_NOESCAPE, NULL,
+           &glob_result) != 0) {
     globfree(&glob_result);
     fprintf(stderr, "Failed to glob at: %s\n", sct_path);
     exit(EXIT_FAILURE);
   }
   sxg_buffer_release(&glob_pattern);
   const size_t files = glob_result.gl_pathc;
-  sxg_buffer_t* buffers = OPENSSL_malloc(sizeof(sxg_buffer_t) * glob_result.gl_pathc);
+  sxg_buffer_t* buffers =
+      OPENSSL_malloc(sizeof(sxg_buffer_t) * glob_result.gl_pathc);
   for (size_t i = 0; i < files; ++i) {
     buffers[i] = sxg_empty_buffer();
     load_file(glob_result.gl_pathv[i], &buffers[i]);
@@ -208,10 +200,8 @@ static void parse_sct_files(const char* sct_path, sxg_buffer_t* sct_list) {
   }
 }
 
-static void load_x509_certs(const char* filepath,
-                            const char* ocsp_path,
-                            const char* sct_path,
-                            sxg_cert_chain_t* chain) {
+static void load_x509_certs(const char* filepath, const char* ocsp_path,
+                            const char* sct_path, sxg_cert_chain_t* chain) {
   FILE* const certfile = fopen(filepath, "r");
   if (certfile == NULL) {
     fprintf(stderr, "fopen %s: %s\n", filepath, strerror(errno));
@@ -261,8 +251,7 @@ static void dump_options(const Options* opt) {
   fprintf(stderr, " sctDir: %s\n", opt->sct);
 }
 
-void write_cert_chain(const sxg_cert_chain_t* chain,
-                      const char* output) {
+void write_cert_chain(const sxg_cert_chain_t* chain, const char* output) {
   sxg_buffer_t result = sxg_empty_buffer();
   if (!sxg_write_cert_chain_cbor(chain, &result)) {
     fprintf(stderr, "Failed to write cert chain\n");
@@ -311,7 +300,7 @@ int main(int argc, char* const argv[]) {
     dump_options(&opt);
     return 1;
   }
-  
+
   sxg_cert_chain_t chain = sxg_empty_cert_chain();
   load_x509_certs(opt.pem, opt.ocsp, opt.sct, &chain);
   write_cert_chain(&chain, opt.output);
