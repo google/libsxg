@@ -1,11 +1,11 @@
 on: push
-name: clang-format Code Formatter
+name: Code Format Checker
 jobs:
   lint:
-    name: clang-format Code Formatter
+    name: Code Format Checker
     runs-on: ubuntu-latest
     steps:
-    - name: Clang Code Formatter
+    - name: Checker
       uses: kumagi/clang-format-action@check-diff
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
