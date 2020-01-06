@@ -6,6 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Clang Code Formatter
-      uses: kumagi/clang-format-action@clang9_1
+      uses: kumagi/clang-format-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
