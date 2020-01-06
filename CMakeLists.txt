@@ -106,6 +106,16 @@ install (TARGETS gensxg RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install (TARGETS gencertchain RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # ##############################################################################
+# Linter
+# ##############################################################################
+
+# This target requires cmake-format executable in your path.
+add_custom_target (
+  cmake_format
+  COMMAND cmake-format -i ${CMAKE_SOURCE_DIR}/CMakeLists.txt
+  COMMENT "Formating with cmake-format ...")
+
+# ##############################################################################
 # Testing
 # ##############################################################################
 if (RUN_TEST)
