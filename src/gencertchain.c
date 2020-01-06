@@ -2,16 +2,15 @@
 #include <errno.h>
 #include <getopt.h>
 #include <glob.h>
+#include <openssl/crypto.h>
+#include <openssl/ocsp.h>
+#include <openssl/pem.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
-#include <openssl/crypto.h>
-#include <openssl/ocsp.h>
-#include <openssl/pem.h>
 
 #include "libsxg.h"
 #include "libsxg/internal/sxg_buffer.h"

@@ -1,14 +1,13 @@
 #define _XOPEN_SOURCE
 #include <errno.h>
 #include <getopt.h>
+#include <openssl/pem.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
-#include <openssl/pem.h>
 
 #include "libsxg.h"
 
