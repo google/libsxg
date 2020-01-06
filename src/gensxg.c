@@ -13,22 +13,22 @@
 #include "libsxg.h"
 
 static const struct option kOptions[] = {
-  { "help",         no_argument,       NULL, 'h' },
-  { "integrity",    no_argument,       NULL, 'i' },
-  { "content",      required_argument, NULL, 'c' },
-  { "contentType",  required_argument, NULL, 't' },
-  { "header",       required_argument, NULL, 'H' },
-  { "output",       required_argument, NULL, 'o' },
-  { "miRecordSize", required_argument, NULL, 'm' },
-  { "uri",          required_argument, NULL, 'u' },
-  { "certUrl",      required_argument, NULL, 'r' },
-  { "validityUrl",  required_argument, NULL, 'v' },
-  { "certificate",  required_argument, NULL, 'e' },
-  { "publicKey",    required_argument, NULL, 'p' },
-  { "privateKey",   required_argument, NULL, 'k' },
-  { "date",         required_argument, NULL, 'd' },
-  { "expire",       required_argument, NULL, 'x' },
-  { 0,              0,                 0,     0  },
+    {"help", no_argument, NULL, 'h'},
+    {"integrity", no_argument, NULL, 'i'},
+    {"content", required_argument, NULL, 'c'},
+    {"contentType", required_argument, NULL, 't'},
+    {"header", required_argument, NULL, 'H'},
+    {"output", required_argument, NULL, 'o'},
+    {"miRecordSize", required_argument, NULL, 'm'},
+    {"uri", required_argument, NULL, 'u'},
+    {"certUrl", required_argument, NULL, 'r'},
+    {"validityUrl", required_argument, NULL, 'v'},
+    {"certificate", required_argument, NULL, 'e'},
+    {"publicKey", required_argument, NULL, 'p'},
+    {"privateKey", required_argument, NULL, 'k'},
+    {"date", required_argument, NULL, 'd'},
+    {"expire", required_argument, NULL, 'x'},
+    {0, 0, 0, 0},
 };
 
 static const char kHelpMessage[] =
@@ -94,7 +94,7 @@ typedef struct {
   const char* public_key;
   const char* private_key;
   time_t date;
-  int64_t duration;  /* Seconds from date. */
+  int64_t duration; /* Seconds from date. */
 } Options;
 
 FILE* safe_fopen(const char* filepath, const char* mode) {
@@ -153,7 +153,7 @@ static time_t parse_time(const char* datestring) {
   if (finished == NULL) {
     fprintf(stderr, "Failed to parse date: %s\n", datestring);
     exit(EXIT_FAILURE);
-  } else if(*finished != '\0') {
+  } else if (*finished != '\0') {
     fprintf(stderr, "Failed to parse at: %s\n", finished);
     exit(EXIT_FAILURE);
   }
@@ -167,7 +167,7 @@ static Options init_default_options() {
   result.content_type = "text/html";
   result.header = sxg_empty_header();
   result.date = time(NULL);
-  result.duration = 60 * 60 * 24 * 7;  /* = 7 Days in seconds. */
+  result.duration = 60 * 60 * 24 * 7; /* = 7 Days in seconds. */
   result.mi_record_size = 4096;
   result.output = "out.sxg";
   return result;
@@ -200,11 +200,8 @@ static Options parse_options(int argc, char* const argv[]) {
   int longindex;
   time_t expires = 0;
   bool is_expire_specified = false;
-  while ((opt = getopt_long_only(argc,
-                                 argv,
-                                 "h:i:c:t:H:m:u:r:v:e:p:k:d:x",
-                                 kOptions,
-                                 &longindex)) != -1) {
+  while ((opt = getopt_long_only(argc, argv, "h:i:c:t:H:m:u:r:v:e:p:k:d:x",
+                                 kOptions, &longindex)) != -1) {
     switch (opt) {
       case 'h':
         result.help = true;
@@ -263,9 +260,7 @@ static Options parse_options(int argc, char* const argv[]) {
   return result;
 }
 
-static bool is_empty(const char* str) {
-  return str == NULL || *str == '\0';
-}
+static bool is_empty(const char* str) { return str == NULL || *str == '\0'; }
 
 static bool validate_common_options(const Options* opt) {
   bool valid = true;
@@ -299,13 +294,10 @@ static bool validate_generator_options(const Options* opt) {
   }
   if (is_empty(opt->certificate)) {
     if (is_empty(opt->public_key)) {
-      fprintf(stderr,
-              "error: -certificate or -publicKey must be specified.\n");
+      fprintf(stderr, "error: -certificate or -publicKey must be specified.\n");
       valid = false;
     } else if (access(opt->public_key, F_OK)) {
-      fprintf(stderr,
-              "error: Cannot access publicKey: %s\n",
-              opt->public_key);
+      fprintf(stderr, "error: Cannot access publicKey: %s\n", opt->public_key);
       valid = false;
     }
   } else {
@@ -315,8 +307,7 @@ static bool validate_generator_options(const Options* opt) {
               "specified at the same time.\n");
       valid = false;
     } else if (access(opt->certificate, F_OK)) {
-      fprintf(stderr,
-              "error: Cannot access certificate: %s\n",
+      fprintf(stderr, "error: Cannot access certificate: %s\n",
               opt->certificate);
       valid = false;
     }
@@ -325,9 +316,7 @@ static bool validate_generator_options(const Options* opt) {
     fputs("error: -privateKey must be specified.\n", stderr);
     valid = false;
   } else if (access(opt->private_key, F_OK)) {
-    fprintf(stderr,
-            "error: Cannot access privateKey: %s\n",
-            opt->private_key);
+    fprintf(stderr, "error: Cannot access privateKey: %s\n", opt->private_key);
     valid = false;
   }
   if (opt->duration <= 0) {
@@ -356,9 +345,8 @@ static void load_signer(const Options* opt, sxg_signer_list_t* signers) {
   if (opt->certificate != NULL) {
     X509* cert = load_x509_cert(opt->certificate);
     EVP_PKEY* pri_key = load_private_key(opt->private_key);
-    if (!sxg_add_ecdsa_signer(opt->url, date, expire,
-                              opt->validity_url, pri_key,
-                              cert, opt->cert_url, signers)) {
+    if (!sxg_add_ecdsa_signer(opt->url, date, expire, opt->validity_url,
+                              pri_key, cert, opt->cert_url, signers)) {
       fprintf(stderr, "Failed to generate SXG signer with certificate\n");
       exit(EXIT_FAILURE);
     }
@@ -367,9 +355,8 @@ static void load_signer(const Options* opt, sxg_signer_list_t* signers) {
   } else {
     EVP_PKEY* pub_key = load_ed25519_pubkey(opt->public_key);
     EVP_PKEY* pri_key = load_private_key(opt->private_key);
-    if (!sxg_add_ed25519_signer(opt->url, date, expire,
-                                opt->validity_url, pri_key,
-                                pub_key, signers)) {
+    if (!sxg_add_ed25519_signer(opt->url, date, expire, opt->validity_url,
+                                pri_key, pub_key, signers)) {
       fprintf(stderr, "Failed to generate SXG signer with Ed25519 key\n");
       exit(EXIT_FAILURE);
     }
@@ -399,9 +386,7 @@ static void load_content(const char* filepath, sxg_buffer_t* buf) {
   fclose(file);
 }
 
-static void print_help() {
-  fputs(kHelpMessage, stderr);
-}
+static void print_help() { fputs(kHelpMessage, stderr); }
 
 static void dump_options(const Options* opt) {
   fprintf(stderr, "Input arguments:\n");
@@ -458,10 +443,8 @@ static void print_integrity_hash(const sxg_encoded_response_t* encoded) {
   safe_fwrite(integrity.data, integrity.size, stdout);
 }
 
-void write_sxg(const sxg_signer_list_t* signers,
-               const char* url,
-               sxg_encoded_response_t* encoded,
-               const char* output) {
+void write_sxg(const sxg_signer_list_t* signers, const char* url,
+               sxg_encoded_response_t* encoded, const char* output) {
   sxg_buffer_t result = sxg_empty_buffer();
   if (!sxg_generate(url, signers, encoded, &result)) {
     fputs("Failed to generate SXG.\n", stderr);

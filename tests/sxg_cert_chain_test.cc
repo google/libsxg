@@ -19,14 +19,14 @@
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
+#include <unistd.h>
 #include <fstream>
 #include <sstream>
-#include <unistd.h>
 #include <string>
 
 #include "gtest/gtest.h"
-#include "test_util.h"
 #include "libsxg/internal/sxg_buffer.h"
+#include "test_util.h"
 
 namespace {
 
@@ -72,7 +72,7 @@ TEST_F(CertChainTest, ExtractOcspUri) {
 
   EXPECT_TRUE(sxg_extract_ocsp_url(cert_, &url));
   EXPECT_EQ('\0', url.data[url.size - 1]);  // Expects null termination.
-  url.size -= 1;  // remove the null termination.
+  url.size -= 1;                            // remove the null termination.
   ASSERT_EQ("http://ocsp.digicert.com", sxg_test::BufferToString(url));
 
   sxg_buffer_release(&url);
@@ -81,7 +81,7 @@ TEST_F(CertChainTest, ExtractOcspUri) {
 TEST_F(CertChainTest, SendRequest) {
   int fds[2];
   ASSERT_EQ(0, pipe(fds));
-  BIO *mem = BIO_new_fd(fds[1], /*close_flag*/1);
+  BIO* mem = BIO_new_fd(fds[1], /*close_flag*/ 1);
   SetEcdsa256();
   OCSP_RESPONSE* result = nullptr;
   std::string buff(4096, '\0');
@@ -100,16 +100,12 @@ TEST_F(CertChainTest, SendRequest) {
   char separator[4];
   std::string body;
 
-  EXPECT_TRUE(
-      sxg_execute_ocsp_request(mem,
-                               "/foobar",
-                               OCSP_cert_to_id(EVP_sha256(), cert_, issuer_),
-                               &result));
+  EXPECT_TRUE(sxg_execute_ocsp_request(
+      mem, "/foobar", OCSP_cert_to_id(EVP_sha256(), cert_, issuer_), &result));
   EXPECT_LT(0, read(fds[0], &buff[0], 4096));
   std::stringstream bufstream(buff);
-  bufstream >> method >> path >> protocol
-            >> content_type >> ocsp_request
-            >> content_length >> length;
+  bufstream >> method >> path >> protocol >> content_type >> ocsp_request >>
+      content_length >> length;
   EXPECT_EQ("POST", method);
   EXPECT_EQ("/foobar", path);
   EXPECT_EQ("HTTP/1.0", protocol);
