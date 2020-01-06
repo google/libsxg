@@ -17,6 +17,7 @@
 #include "libsxg/internal/sxg_cbor.h"
 
 #include <string.h>
+
 #include "libsxg/internal/sxg_buffer.h"
 
 static bool write_initial_bytes(uint8_t type_offset, uint64_t length,
