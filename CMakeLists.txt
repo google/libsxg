@@ -152,40 +152,33 @@ if (RUN_TEST)
     PROPERTIES "IMPORTED_LOCATION"
                "${PROJECT_BINARY_DIR}/gtest/lib/libgtest_main.a"
                "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}")
-  set (GTEST_INCLUDE ${PROJECT_BINARY_DIR}/third_party/gtest/googletest/include)
-
+  set (GTEST_INCLUDE
+       "${PROJECT_BINARY_DIR}/third_party/gtest/googletest/include")
   add_library (test_util SHARED tests/test_util.cc)
-  target_include_directories (test_util PRIVATE ${PROJECT_SOURCE_DIR}/include
+  target_include_directories (test_util PUBLIC ${PROJECT_SOURCE_DIR}/include
                                                 ${GTEST_INCLUDE})
-  add_dependencies (test_util sxg libgtest libgtest_main gtest)
+  add_dependencies (test_util gtest libgtest libgtest_main sxg)
   target_link_libraries (test_util INTERFACE libgtest libgtest_main pthread sxg
                                              ${OPENSSL_LIBRARIES})
 endif ()
 
-macro (add_test_macro target_name test_name)
+set (SANITIZER_OPTIONS "-fsanitize=address,leak,undefined")
+macro (add_test_macro target_name test_name with_sanitizer)
   add_executable (${target_name} tests/${test_name}.cc)
   add_test (NAME ${target_name} COMMAND ${target_name})
-  add_dependencies (${target_name} libgtest libgtest_main gtest sxg test_util)
-  target_link_libraries (
-    ${target_name} PRIVATE libgtest libgtest_main pthread sxg test_util
-                           ${OPENSSL_LIBRARIES})
-  target_include_directories (
-    ${target_name} PRIVATE ${PROJECT_SOURCE_DIR}/include ${GTEST_INCLUDE})
+  add_dependencies (${target_name} test_util)
+  target_link_libraries (${target_name} PRIVATE test_util)
+  if (with_sanitizer)
+    target_compile_options (${target_name} PRIVATE ${SANITIZER_OPTIONS})
+    target_link_options (${target_name} PRIVATE ${SANITIZER_OPTIONS})
+  endif ()
 endmacro ()
-
-function (add_plain_test test_name)
-  add_test_macro (${test_name} ${test_name})
-endfunction ()
-
-set (SANITIZER_OPTIONS "-fsanitize=address,leak,undefined")
-function (add_sanitizer_test test_name)
-  add_test_macro ("${test_name}_sanitizer" ${test_name})
-endfunction ()
 
 function (configure_test test_name)
   message ("-- Configuring test: ${test_name}")
-  add_plain_test (${test_name})
-  add_sanitizer_test (${test_name})
+  add_test_macro (${test_name} ${test_name} FALSE)
+  message ("-- Configuring test: ${test_name}_sanitizer")
+  add_test_macro ("${test_name}_sanitizer" ${test_name} TRUE)
 endfunction ()
 
 if (RUN_TEST)
