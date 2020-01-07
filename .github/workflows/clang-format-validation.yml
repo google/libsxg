@@ -1,5 +1,5 @@
 name: Validate code format with clang-format
-on: push
+on: [push, pull_request]
 jobs:
   validate:
     runs-on: ubuntu-18.04
