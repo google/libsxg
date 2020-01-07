@@ -155,10 +155,8 @@ if (RUN_TEST)
   set (GTEST_INCLUDE
        "${PROJECT_BINARY_DIR}/third_party/gtest/googletest/include")
   add_library (test_util SHARED tests/test_util.cc)
-  target_include_directories (test_util PRIVATE ${PROJECT_SOURCE_DIR}/include
+  target_include_directories (test_util PUBLIC ${PROJECT_SOURCE_DIR}/include
                                                 ${GTEST_INCLUDE})
-  target_include_directories (test_util INTERFACE ${PROJECT_SOURCE_DIR}/include
-                                                  ${GTEST_INCLUDE})
   add_dependencies (test_util gtest libgtest libgtest_main sxg)
   target_link_libraries (test_util INTERFACE libgtest libgtest_main pthread sxg
                                              ${OPENSSL_LIBRARIES})
