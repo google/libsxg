@@ -19,6 +19,10 @@ set (CMAKE_PROJECT_VERSION_MAJOR "0")
 set (CMAKE_PROJECT_VERSION_MINOR "2")
 set (CMAKE_PROJECT_VERSION_PATCH "0")
 
+set (LIBSXG_CORE_VERSION
+     "${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}")
+set (LIBSXG_SOVERSION "${CMAKE_PROJECT_VERSION_MAJOR}")
+
 option (
   RUN_TEST
   "If false, build libsxg without building tests.\
@@ -87,10 +91,7 @@ target_link_libraries (gencertchain PRIVATE ${OPENSSL_LIBRARIES} sxg)
 # ##############################################################################
 
 set_target_properties (
-  sxg
-  PROPERTIES VERSION ${CMAKE_PROJECT_VERSION}
-             SOVERSION
-             "${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}")
+  sxg PROPERTIES VERSION ${LIBSXG_CORE_VERSION} SOVERSION ${LIBSXG_SOVERSION})
 
 set_target_properties (sxg PROPERTIES PUBLIC_HEADER "${HEADERS}")
 install (
@@ -156,7 +157,7 @@ if (RUN_TEST)
        "${PROJECT_BINARY_DIR}/third_party/gtest/googletest/include")
   add_library (test_util SHARED tests/test_util.cc)
   target_include_directories (test_util PUBLIC ${PROJECT_SOURCE_DIR}/include
-                                                ${GTEST_INCLUDE})
+                                               ${GTEST_INCLUDE})
   add_dependencies (test_util gtest libgtest libgtest_main sxg)
   target_link_libraries (test_util INTERFACE libgtest libgtest_main pthread sxg
                                              ${OPENSSL_LIBRARIES})
