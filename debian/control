@@ -12,7 +12,7 @@ Vcs-Browser: https://github.com/google/libsxg
 Homepage: https://github.com/google/libsxg
 Rules-Requires-Root: no
 
-Package: libsxg0.2
+Package: libsxg0
 Architecture: any
 Multi-Arch: same
 Depends: libssl1.1 (>=1.1.1),
@@ -30,7 +30,7 @@ Package: libsxg-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libsxg0.2 (= ${binary:Version}),
+Depends: libsxg0 (= ${binary:Version}),
          ${misc:Depends}
 Description: Development files for Signed HTTP Exchange library
  With development files, you can build your own SXG applications.
@@ -39,7 +39,7 @@ Package: sxg-util
 Section: web
 Architecture: any
 Multi-Arch: foreign
-Depends: libsxg0.2 (= ${binary:Version}),
+Depends: libsxg0 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Description: Signed HTTP Exchange utilities to manipurate SXG files
