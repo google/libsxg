@@ -45,7 +45,6 @@ sxg_header_append_string("Content-Type", "text/html", &resp.header);
 sxg_write_string("<!DOCTYPE html><html lang='en'></html>", &resp.payload);
 ```
 
-
 ### void sxg\_raw\_response\_release(sxg\_raw\_response\_t\* target)
 
 Releases memory of `sxg_raw_response_t`.

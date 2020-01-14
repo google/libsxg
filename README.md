@@ -1,4 +1,5 @@
 # Signed HTTP Exchange library
+
 [![Build Status](https://travis-ci.org/google/libsxg.svg?branch=master)](https://travis-ci.org/google/libsxg)
 
 ## Introduction
@@ -14,13 +15,13 @@ This library is a minimal toolkit for handling SXG files.
 
 ## Requirements
 
--   tested on OpenSSL 1.1.1c.
+- tested on OpenSSL 1.1.1c.
 
 ## Build \& Install
 
 Simple cmake project.
 
-```bash
+```ShellSession
 $ mkdir build
 $ cd build
 $ cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -28,7 +29,7 @@ $ make sxg
 $ sudo make install
 ```
 
-## Documents
+## Documentation
 
 See [docs](docs/index.md).
 
@@ -114,8 +115,8 @@ int main() {
 }
 ```
 
-You can compile it like.
+You can compile via:
 
-```bash
+```ShellSession
 $ gcc sxgsample.c -lsxg -lcrypto
 ```

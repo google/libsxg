@@ -39,7 +39,6 @@ Allocated size of `entries` vector.
 Initially 0.
 Should be changed only when memory allocation happens.
 
-
 ### sxg\_kvp\_t
 
 Element of `sxg_header_t` vector.
@@ -55,7 +54,7 @@ HTTP header's value byte array.
 
 ## Functions
 
-### sxg\_header\_t sxg\_empty\_header();
+### sxg\_header\_t sxg\_empty\_header()
 
 Creates a header with zero length and capacity. Never fails.
 
@@ -74,10 +73,9 @@ Empty `sxg_header_t` structure with zero size and zero capacity.
 sxg_header_t header = sxg_empty_header();
 ```
 
-
 ### void sxg\_header\_release(sxg\_header\_t\* target)
 
-Releases entire contents of sxg_header.
+Releases entire contents of `sxg_header`.
 Never fails.
 
 #### Arguments
@@ -95,8 +93,6 @@ sxg_header_t header = sxg_empty_header();
 /* You can call release function even if header is empty. */
 sxg_header_release(&header);
 ```
-
-
 
 ### bool sxg\_header\_append\_buffer(const char\* key, const sxg\_buffer\_t\* value, sxg\_header\_t\* target)
 
@@ -126,7 +122,6 @@ sxg_buffer_release(&value);
 sxg_header_release(&header);
 ```
 
-
 ### bool sxg\_header\_append\_string(const char\* key, const char\* value, sxg\_header\_t\* target)
 
 Adds new key-value pair with null-terminated string value.
@@ -152,7 +147,7 @@ sxg_header_append_string("Content-Encoding", "gzip", &header);
 sxg_header_release(&header);
 ```
 
-### bool sxg\_header\_append\_integer(const char\* key, uint64\_t num, sxg\_header_t\* target)
+### bool sxg\_header\_append\_integer(const char\* key, uint64\_t num, sxg\_header\_t\* target)
 
 Adds new key-value pair with ASCII formatted integer value.
 
@@ -177,10 +172,9 @@ sxg_header_append_integer("Content-Length", 12345, &header);
 sxg_header_release(&header);
 ```
 
-
 ### bool sxg\_header\_copy(const sxg\_header\_t\* src, sxg\_header\_t\* dst)
 
-Duplicates sxg_header with deep copy.
+Duplicates `sxg_header` with deep copy.
 Previous content of `dst` will be released.
 
 #### Arguments
