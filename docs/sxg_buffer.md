@@ -28,12 +28,10 @@ You can read all fields, but you should not modify any field directly except the
 bytes pointed by the `data` pointer.
 These fields should be modified via dedicated APIs.
 
-
 ### uint8\_t\* data
 
 A memory fragment allocated for this buffer.
 Initially NULL, in which case capacity and size must be 0.
-
 
 ### size\_t size
 
@@ -41,13 +39,11 @@ Size of buffer actually used.
 Initially 0.
 Every `sxg_write_*` API will increase this field.
 
-
 ### size\_t capacity
 
 Allocated size of the buffer.
 Initially 0.
 Should be changed only when memory allocation happens.
-
 
 ## Functions
 
@@ -70,7 +66,6 @@ Empty `sxg_buffer_t` structure with zero size and zero capacity.
 sxg_buffer_t buf = sxg_empty_buffer();
 ```
 
-
 ### void sxg\_buffer\_release(sxg\_buffer\_t\* target)
 
 Releases memory of the buffer specified as `target`.
@@ -92,7 +87,6 @@ sxg_buffer_t buf = sxg_empty_buffer();
 sxg_buffer_release(&buf);
 ```
 
-
 ### bool sxg\_buffer\_resize(size\_t size, sxg\_buffer\_t\* target)
 
 Resizes a buffer with specified length, contents are not initialized.
@@ -107,7 +101,6 @@ Resizes a buffer with specified length, contents are not initialized.
 
 Returns `true` on success.
 On fail, buffer will not be changed.
-
 
 #### Example
 
@@ -158,6 +151,7 @@ On fail, `target` will not be changed.
 #### Example
 
 Store and print `Hello world`.
+
 ```c
 sxg_buffer_t buf = sxg_empty_buffer();
 sxg_write_string("Hello ", &buf);
@@ -185,6 +179,7 @@ On fail, `target` will not be changed.
 #### Example
 
 Print `hello`.
+
 ```c
 sxg_buffer_t buf = sxg_empty_buffer();
 sxg_write_byte('h', &buf);
@@ -198,13 +193,14 @@ printf("\n");
 sxg_buffer_release(&buf);
 ```
 
-
 ### bool sxg\_write\_bytes(const uint8\_t\* bytes, size\_t size, sxg\_buffer\_t\* target)
 
 Appends the specified bytes to the buffer.
 
 #### Arguments
+
 re
+
 - `bytes` : Contents to write.
 - `size` : Length of binary array data to write.
 - `target` : Buffer to be modified.
@@ -217,6 +213,7 @@ On fail, `target` will not be changed.
 #### Example
 
 Make `sxg_buffer` from `std::string` (C++)
+
 ```cpp
 std::string text("Hello C++ world");
 sxg_buffer_t buf = sxg_empty_buffer();
@@ -245,6 +242,7 @@ On fail, `target` will not be changed.
 #### Example
 
 Print `Hello world`
+
 ```c
 sxg_buffer_t hello = sxg_empty_buffer();
 sxg_write_string("Hello ", &hello);
@@ -260,7 +258,6 @@ sxg_buffer_release(&hello);
 sxg_buffer_release(&world);
 ```
 
-
 ### bool sxg\_write\_int(uint64\_t num, int nbytes, sxg\_buffer\_t\* target)
 
 Appends an integer in big-endian format with byte size `nbytes`.
@@ -272,7 +269,7 @@ nbytes must be in the range from 1 to 8.
 - `nbytes` : Length of big-endian encoded number to write in bytes.
 - `target` : Buffer to be modified.
 
-#### Returns.
+#### Returns
 
 Returns `true` on success.
 On fail, `target` will not be changed.
@@ -280,6 +277,7 @@ On fail, `target` will not be changed.
 #### Example
 
 Write `UINT_MAX` to `sxg_buffer`.
+
 ```c
 sxg_buffer_t buf = sxg_empty_buffer();
 sxg_write_int(UINT_MAX, 4, &buf);
@@ -290,7 +288,6 @@ for (size_t i = 0; i < buf.size; i++) {
 printf("\n"):
 sxg_buffer_release(&buf);
 ```
-
 
 ### bool sxg\_buffer\_copy(const sxg\_buffer\_t\* src, sxg\_buffer\_t\* dst)
 
@@ -313,6 +310,7 @@ On fail, `dst` will not be changed.
 #### Example
 
 Copy buffer `Document`.
+
 ```c
 sxg_buffer_t buf1 = sxg_empty_buffer();
 sxg_write_string("Document", &buf1);
@@ -326,4 +324,3 @@ printf("\n");
 
 sxg_buffer_release(&buf2);
 ```
-

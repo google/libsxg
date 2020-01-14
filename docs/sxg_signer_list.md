@@ -25,6 +25,7 @@ Vector of `sxg_signer_t`, you can read all fields, but you should modify them
 via dedicated APIs except contents of `sxg_signer_t`.
 
 #### sxg\_signer\_t\* signers
+
 signer_list
 Head pointer of signers vector.
 Initially `NULL`.
@@ -66,7 +67,6 @@ Unix time of SXG expiration time.
 Validity URL embedded into SXG file.
 Always null terminated.
 
-
 ## Functions
 
 ### sxg\_signer\_list\_t sxg\_empty\_signer\_list()
@@ -86,7 +86,6 @@ Empty `sxg_signer_list_t` structure with zero size and zero capacity.
 ```c
 sxg_signer_list_t signers = sxg_empty_signer_list();
 ```
-
 
 ### void sxg\_signer\_list\_release(sxg\_signer\_list\_t\* target)
 
@@ -164,7 +163,6 @@ X509_free(cert);
 sxg_signer_list_release(&signers);
 ```
 
-
 ### bool sxg_add\_ed25519\_signer(const char\* name, uint64\_t date, uint64\_t expires, const char\* validity\_url, EVP\_PKEY\* private\_key, EVP\_PKEY\* public\_key, sxg\_signer\_list\_t\* target)
 
 Appends new Ed25519 signer to signer list. Copies the string parameters and
@@ -218,4 +216,5 @@ EVP_PKEY_free(private_key);
 EVP_PKEY_free(public_key);
 sxg_signer_list_release(&signers);
 ```
+
 f

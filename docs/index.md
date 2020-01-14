@@ -27,7 +27,6 @@ You can embed multiple signatures in a single SXG file.
 Using multiple signatures gives you the flexibility of expiration or ways to obtain certificates.
 You can configure the signers by `sxg_signer_list_t` related [functions](sxg_signer_list.md).
 
-
 ### Payload
 
 `Payload` is a pair of HTTP header and body.
@@ -35,7 +34,6 @@ HTTP header is serialized using [CBOR encoding](https://tools.ietf.org/html/rfc7
 Header must include `Digest` which is calculated from the body, `Content-Type` and `status`.
 The body must be encoded with [mi-sha256](https://tools.ietf.org/html/draft-thomson-http-mice-03) to keep integrity of contents.
 You can create the encoded payload by [sxg_raw_response_t](sxg_raw_response.md) and [sxg_encoded_response_t](sxg_encoded_response.md) and `sxg_encode_response` function.
-
 
 ## How to generate an SXG file
 
@@ -47,7 +45,6 @@ These steps describe how to use the library to make an SXG file.
 4. Prepare ECDSA key pair with certificate containing `CanSignHttpExchanges` extension.
 5. Register the key pair and parameters as a signer in `sxg_signer_list_t` struct.
 6. Call [sxg_generate](sxg_generate.md) function to get SXG payload.
-
 
 ## API
 

@@ -2,14 +2,15 @@
 
 A command-line tool for generating Certificate-Chain cbor file.
 
-# Usage
+## Usage
 
 This command generates an Certificate-Chain cbor file.
 
 ```ShellSession
 $ gencertchain -certificate ./prime256v1.pem > certchain.cbor
 ```
-# Options
+
+## Options
 
 - `-help`:                 Show help message.
 - `-ocsp` _string_:        Specify a DER-encoded OCSP response file. If omitted, it is automatically fetched from ther certificate's OCSP responder.

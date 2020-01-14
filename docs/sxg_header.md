@@ -39,7 +39,6 @@ Allocated size of `entries` vector.
 Initially 0.
 Should be changed only when memory allocation happens.
 
-
 ### sxg\_kvp\_t
 
 Element of `sxg_header_t` vector.
@@ -55,7 +54,7 @@ HTTP header's value byte array.
 
 ## Functions
 
-### sxg\_header\_t sxg\_empty\_header();
+### sxg\_header\_t sxg\_empty\_header()
 
 Creates a header with zero length and capacity. Never fails.
 
@@ -73,7 +72,6 @@ Empty `sxg_header_t` structure with zero size and zero capacity.
 /* You should initialize sxg_header_t with sxg_empty_header(). */
 sxg_header_t header = sxg_empty_header();
 ```
-
 
 ### void sxg\_header\_release(sxg\_header\_t\* target)
 
@@ -95,8 +93,6 @@ sxg_header_t header = sxg_empty_header();
 /* You can call release function even if header is empty. */
 sxg_header_release(&header);
 ```
-
-
 
 ### bool sxg\_header\_append\_buffer(const char\* key, const sxg\_buffer\_t\* value, sxg\_header\_t\* target)
 
@@ -125,7 +121,6 @@ sxg_header_append_buffer("Accept-Ranges", &value, &header);
 sxg_buffer_release(&value);
 sxg_header_release(&header);
 ```
-
 
 ### bool sxg\_header\_append\_string(const char\* key, const char\* value, sxg\_header\_t\* target)
 
@@ -176,7 +171,6 @@ sxg_header_append_integer("Content-Length", 12345, &header);
 
 sxg_header_release(&header);
 ```
-
 
 ### bool sxg\_header\_copy(const sxg\_header\_t\* src, sxg\_header\_t\* dst)
 

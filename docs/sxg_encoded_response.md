@@ -94,6 +94,7 @@ On fail, `target` may contain incomplete data.
 #### Example
 
 Print integrity.
+
 ```c
 sxg_raw_response_t src = sxg_empty_raw_response();
 sxg_encoded_response_t encoded = sxg_empty_encoded_response();
@@ -108,4 +109,3 @@ sxg_raw_response_release(&src);
 sxg_encoded_response_release(&encoded);
 sxg_buffer_release(&integrity);
 ```
-
