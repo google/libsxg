@@ -43,15 +43,15 @@ A command-line tool for generating SXG (Signed HTTP Exchanges).
 
 ## OPTIONS
 
-`help`:                 Show help message.
+`-help`:                 Show help message.
 
-`integrity`:            Output integrity hash value only instead of the SXG. Set \<integrity hash only mode\>.
+`-integrity`:            Output integrity hash value only instead of the SXG. Set \<integrity hash only mode\>.
 
-`content` _string_:     Source file to be used as SXG payload (default `./index.html`).
+`-content` _string_:     Source file to be used as SXG payload (default `./index.html`).
 
-`contentType` _string_: Mime type of Source file (default `text/html`).
+`-contentType` _string_: Mime type of Source file (default `text/html`).
 
-`header` _string_:      HTTP response header. You can use this option multiple times.
+`-header` _string_:      HTTP response header. You can use this option multiple times.
                            Content-Type should be specified by `-contentType` option above (optional).
 
 `-miRecordSize` _int_:   The record size of Merkle Integrity Content Encoding. (default `4096`)
