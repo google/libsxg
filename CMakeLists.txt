@@ -128,7 +128,7 @@ add_custom_target (
 add_custom_target (
   man_format
   COMMAND
-    find ${CMAKE_SOURCE_DIR}/docs/|grep md$ | xargs markdownlint -c ${CMAKE_SOURCE_DIR}/.markdownlint
+    find ${CMAKE_SOURCE_DIR}/docs/ -name '*.md' | xargs markdownlint -c ${CMAKE_SOURCE_DIR}/.markdownlint
   COMMENT "Formating with markdownlint ...")
 
 # ##############################################################################
