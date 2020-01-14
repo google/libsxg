@@ -1,0 +1,119 @@
+.\" generated with Ronn-NG/v0.8.0
+.\" http://github.com/apjanke/ronn-ng/tree/0.8.0
+.TH "LIBSXG" "" "January 2020" "" ""
+.SH "NAME"
+\fBlibsxg\fR \- Signed HTTP Exchange (SXG) toolkit
+.SH "SYNOPSIS"
+.nf
+#include <libsxg\.h>
+
+bool sxg\e_buffer\e_copy(const sxg\e_buffer\e_t\e* src, sxg\e_buffer\e_t\e* dst);
+bool sxg\e_buffer\e_resize(size\e_t size, sxg\e_buffer\e_t\e* target);
+bool sxg\e_encode\e_response(const size\e_t mi\e_record\e_size, const sxg\e_raw\e_response\e_t* src, sxg\e_encoded\e_response\e_t* dst);
+bool sxg\e_header\e_append\e_buffer(const char\e* key, const sxg\e_buffer\e_t\e* value, sxg\e_header\e_t\e* target);
+bool sxg\e_header\e_append\e_integer(const char\e* key, uint64\e_t num, sxg\e_header_t\e* target);
+bool sxg\e_header\e_append\e_string(const char\e* key, const char\e* value, sxg\e_header\e_t\e* target);
+bool sxg\e_header\e_copy(const sxg\e_header\e_t\e* src, sxg\e_header\e_t\e* dst);
+bool sxg\e_header\e_merge(const sxg\e_header\e_t\e* src, sxg\e_header\e_t\e* target);
+bool sxg\e_write\e_buffer(const sxg\e_buffer\e_t\e* follower, sxg\e_buffer\e_t\e* target);
+bool sxg\e_write\e_byte(uint8\e_t byte, sxg\e_buffer\e_t\e* target);
+bool sxg\e_write\e_bytes(const uint8\e_t\e* bytes, size\e_t size, sxg\e_buffer\e_t\e* target);
+bool sxg\e_write\e_header\e_integrity(const sxg\e_encoded\e_response\e_t* src, sxg\e_buffer\e_t* target);
+bool sxg\e_write\e_int(uint64\e_t num, int nbytes, sxg\e_buffer\e_t\e* target);
+bool sxg\e_write\e_string(const char\e* string, sxg\e_buffer\e_t\e* target);
+bool sxg_add\e_ecdsa\e_signer(const char\e\e* name, uint64\e_t date, uint64\e_t expires, const char\e* validity\e_url, EVP\e_PKEY\e* private\e_key, X509\e* public\e_key, const char\e* certificate\e_url, sxg\e_signer\e_list\e_t\e* target);
+bool sxg_add\e_ed25519\e_signer(const char\e* name, uint64\e_t date, uint64\e_t expires, const char\e* validity\e_url, EVP\e_PKEY\e* private\e_key, EVP\e_PKEY\e* public\e_key, sxg\e_signer\e_list\e_t\e* target);
+bool sxg_generate(const char\e* fallback\e_url, const sxg\e_signer\e_list\e_t\e* signers, const sxg\e_encoded\e_response\e_t\e* resp, sxg\e_buffer\e_t\e* dst);
+sxg\e_buffer\e_t sxg\e_empty\e_buffer();
+sxg\e_header\e_t sxg\e_empty\e_header();
+sxg\e_raw\e_response\e_t sxg\e_empty\e_raw\e_response();
+sxg\e_signer\e_list\e_t sxg\e_empty\e_signer\e_list();
+void sxg\e_buffer\e_release(sxg\e_buffer\e_t\e* target);
+void sxg\e_encoded\e_response\e_release(sxg\e_encoded\e_response\e_t* target);
+void sxg\e_header\e_release(sxg\e_header\e_t\e* target);
+void sxg\e_raw\e_response\e_release(sxg\e_raw\e_response\e_t\e* target);
+void sxg\e_signer\e_list\e_release(sxg\e_signer\e_list\e_t\e* target);
+.fi
+.SH "RETURN VALUE"
+Returns true on success\.
+.SH "EXAMPLE"
+.nf
+#include <assert\.h>
+#include <libsxg\.h>
+#include <openssl/crypto\.h>
+#include <openssl/pem\.h>
+#include <stdbool\.h>
+#include <stdio\.h>
+#include <time\.h>
+
+int main() {
+  // Load keys\.
+  char passwd[] = "";
+  FILE* keyfile = fopen("ecdsa\.privkey", "r");
+  assert(keyfile != NULL);
+  EVP_PKEY* priv_key = PEM_read_PrivateKey(keyfile, NULL, NULL, NULL);
+  fclose(keyfile);
+
+  FILE* certfile = fopen("ecdsa\.cert", "r");
+  assert(certfile != NULL);
+  X509* cert = PEM_read_X509(certfile, 0, 0, passwd);
+  fclose(certfile);
+
+  // Initialize signers\.
+  time_t now = time(NULL);
+  sxg_signer_list_t signers = sxg_empty_signer_list();
+  if (!sxg_add_ecdsa_signer(
+          "my_signer", now, now + 60 * 60 * 24,
+          "https://original\.example\.com/resource\.validity\.msg",
+           priv_key, cert, "https://yourcdn\.example\.test/cert\.cbor",
+           &signers)) {
+    printf("Failed to append signer\.\en");
+    return 1;
+  }
+
+  // Prepare contents\.
+  sxg_raw_response_t content = sxg_empty_raw_response();
+  if (!sxg_header_append_string("content\-type", "text/html; charset=utf\-8",
+                                &content\.header)) {
+    printf("Failed to append content\-type header\.\en");
+    return 1;
+  }
+  if (!sxg_write_string("<!DOCTYPE html><html><body>Hello Sxg!</body></html>\en",
+                        &content\.payload)) {
+    printf("Failed to set payload\.\en");
+    return 1;
+  }
+
+  // Encode contents\.
+  sxg_encoded_response_t encoded = sxg_empty_encoded_response();
+  if (!sxg_encode_response(4096, &content, &encoded)) {
+    printf("Failed to encode content\.\en");
+    return 1;
+  }
+
+  // Generate SXG\.
+  sxg_buffer_t result = sxg_empty_buffer();
+  if (!sxg_generate("https://original\.example\.com/index\.html", &signers,
+                    &encoded, &result)) {
+    printf("Failed to generate SXG\.\en");
+    return 1;
+  }
+
+  // Save SXG as a file\.
+  FILE* fp = fopen("hello\.sxg", "w");
+  assert(fp != NULL);
+  size_t wrote = fwrite(result\.data, result\.size, 1, fp);
+  assert(wrote == 1);
+  fclose(fp);
+
+  // Release resouces\.
+  EVP_PKEY_free(priv_key);
+  X509_free(cert);
+  sxg_signer_list_release(&signers);
+  sxg_raw_response_release(&content);
+  sxg_encoded_response_release(&encoded);
+  sxg_buffer_release(&result);
+  return 0;
+}
+.fi
+

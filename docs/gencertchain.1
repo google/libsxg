@@ -1,0 +1,25 @@
+.\" generated with Ronn-NG/v0.8.0
+.\" http://github.com/apjanke/ronn-ng/tree/0.8.0
+.TH "GENCERTCHAIN" "" "January 2020" "" ""
+.SH "NAME"
+\fBgencertchain\fR \- A command\-line tool for generating Certificate\-Chain CBOR file
+.SH "USAGE"
+This command generates an Certificate\-Chain CBOR file\.
+.IP "" 4
+.nf
+$ gencertchain \-certificate \./prime256v1\.pem > certchain\.cbor
+.fi
+.IP "" 0
+.SH "OPTIONS"
+.IP "\[ci]" 4
+\fB\-help\fR: Show help message\.
+.IP "\[ci]" 4
+\fB\-ocsp\fR \fIstring\fR: Specify a DER\-encoded OCSP response file\. If omitted, it is automatically fetched from ther certificate\'s OCSP responder\.
+.IP "\[ci]" 4
+\fB\-out\fR \fIstring\fR: Certificate\-Chain output file\. If value is \'\-\', the output will be written to stdout\. If omitted, output will be written \'cert\.cbor\'\.
+.IP "\[ci]" 4
+\fB\-pem\fR \fIstring\fR: The certificate PEM file for the Certificate\-Chain\.
+.IP "\[ci]" 4
+\fB\-sctDir\fR \fIstring\fR: A path to the directory which contains *\.sct files for SCT information embedded into the head of Certificate\-Chain\.
+.IP "" 0
+

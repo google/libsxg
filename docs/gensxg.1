@@ -1,0 +1,75 @@
+.\" generated with Ronn-NG/v0.8.0
+.\" http://github.com/apjanke/ronn-ng/tree/0.8.0
+.TH "GENSXG" "" "January 2020" "" ""
+.SH "NAME"
+\fBgensxg\fR \- Generate Signed HTTP Exchange (SXG)
+.SH "SYNOPSIS"
+.nf
+$ gensxg \-url https://example\.com \e
+         \-certUrl https://example\.com/cert\.cbor \e
+         \-validityUrl https://example\.com/validity\.msg \e
+         \-certificate \./prime256v1\.pem \e
+         \-privateKey \./prime256v1\.key \e
+         \-content \./myFile\.html \e
+    > myFile\.html\.sxg
+.fi
+.P
+This command generates an SXG file for example\.com\.
+.P
+Calculate integrity hash value of some file\.
+.IP "" 4
+.nf
+$ gensxg \-integrity \e
+         \-content \./logo\.png
+         \-contentType image/png
+    > logo\-integrity
+.fi
+.IP "" 0
+.P
+SXG with subresource integrity\.
+.IP "" 4
+.nf
+$ gensxg \-url https://example\.com \e
+         \-certUrl https://example\.com/cert\.cbor \e
+         \-validityUrl https://example\.com/validity\.msg \e
+         \-certificate \./prime256v1\.pem \e
+         \-privateKey \./prime256v1\.key \e
+         \-header "link: <https://example\.com/logo\.png>;rel=\e"allowed\-alt\-sxg\e";header\-integrity=\e"`gensxg \-integrity \-content \./logo\.png \-contentType image/png`\e"" \e
+         \-header "link: <https://example\.com/logo\.png>;rel=\e"preload\e";as=\e"image\e"" \e
+         \-content \./myFile\.html
+    > myFile\.html\.sxg
+.fi
+.IP "" 0
+.SH "DESCRIPTION"
+A command\-line tool for generating SXG (Signed HTTP Exchanges)\.
+.SH "OPTIONS"
+\fB\-help\fR: Show help message\.
+.P
+\fB\-integrity\fR: Output integrity hash value only instead of the SXG\. Set \e\fIintegrity hash only mode\e\fR\.
+.P
+\fB\-content\fR \fIstring\fR: Source file to be used as SXG payload (default \fB\./index\.html\fR)\.
+.P
+\fB\-contentType\fR \fIstring\fR: Mime type of Source file (default \fBtext/html\fR)\.
+.P
+\fB\-header\fR \fIstring\fR: HTTP response header\. You can use this option multiple times\. Content\-Type should be specified by \fB\-contentType\fR option above (optional)\.
+.IP "\[ci]" 4
+\fB\-miRecordSize\fR \fIint\fR: The record size of Merkle Integrity Content Encoding\. (default \fB4096\fR)
+.IP "" 0
+.P
+The options below are not applicable to \e\fIintegrity hash only mode\e\fR\.
+.P
+\fB\-url\fR \fIstring\fR: The URI of the resource represented in the SXG file\. (required)
+.P
+\fB\-certUrl\fR \fIstring\fR: The URI of certificate CBOR file published\. (required)
+.P
+\fB\-validityUrl\fR \fIstring\fR: The URI of validity information provided\. (required)
+.P
+\fB\-certificate\fR \fIstring\fR: The certificate PEM file for the SXG\. (mutually exclusive with \fB\-publicKey\fR)
+.P
+\fB\-publicKey\fR \fIstring\fR: The Ed25519 PEM file for the SXG\. (mutually exclusive with \fB\-certificate\fR)
+.P
+\fB\-privateKey\fR \fIstring\fR: The private key PEM file for the SXG\. (required)
+.P
+\fB\-date\fR \fIstring\fR: The datetime for the SXG in RFC3339 format (2006\-01\-02T15:04:05Z)\. Use the current time by default\.
+.P
+\fB\-expire\fR \fIstring\fR: The expiration time of the SXG in RFC3339 format (2006\-01\-02T15:04:05Z)\. (default \e\fIdate\e\fR +7 days)
