@@ -29,7 +29,7 @@ override_dh_auto_configure:
 override_dh_auto_install:
 	mkdir -p debian/tmp/usr/share/man/man1
 	mkdir -p debian/tmp/usr/share/man/man3
-	cp docs/gensxg.1       debian/tmp/usr/share/man/man1/gensxg.1
-	cp docs/gencertchain.1 debian/tmp/usr/share/man/man1/gencertchain.1
-	cp docs/libsxg.3       debian/tmp/usr/share/man/man3/libsxg.3
+	cp docs/gensxg.1 debian/tmp/usr/share/man/man1/
+	cp docs/gencertchain.1  debian/tmp/usr/share/man/man1/
+	cp docs/libsxg.3 debian/tmp/usr/share/man/man3/
 	dh_auto_install

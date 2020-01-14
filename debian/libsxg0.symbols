@@ -1,67 +1,67 @@
-libsxg.so.0.2 libsxg
-
- sxg_add_ecdsa_signer@Base 0
- sxg_add_ed25519_signer@Base 0
- sxg_base64encode@Base 0
- sxg_base64encode_bytes@Base 0
- sxg_buffer_copy@Base 0
- sxg_buffer_dump@Base 0
- sxg_buffer_release@Base 0
- sxg_buffer_resize@Base 0
- sxg_calc_sha256@Base 0
- sxg_calc_sha384@Base 0
- sxg_calculate_cert_sha256@Base 0
+libsxg.so.0 libsxg0 #MINVER#
+* Build-Depends-Package: libssl-dev
+ sxg_add_ecdsa_signer@Base 0.1
+ sxg_add_ed25519_signer@Base 0.1
+ sxg_base64encode@Base 0.1
+ sxg_base64encode_bytes@Base 0.1
+ sxg_buffer_copy@Base 0.1
+ sxg_buffer_dump@Base 0.1
+ sxg_buffer_release@Base 0.1
+ sxg_buffer_resize@Base 0.1
+ sxg_calc_sha256@Base 0.1
+ sxg_calc_sha384@Base 0.1
+ sxg_calculate_cert_sha256@Base 0.1
  sxg_cert_chain_append_cert@Base 0.2
  sxg_cert_chain_release@Base 0.2
- sxg_empty_buffer@Base 0
+ sxg_empty_buffer@Base 0.1
  sxg_empty_cert@Base 0.2
  sxg_empty_cert_chain@Base 0.2
- sxg_empty_encoded_response@Base 0
- sxg_empty_header@Base 0
- sxg_empty_raw_response@Base 0
- sxg_empty_sig@Base 0
- sxg_empty_signer@Base 0
- sxg_empty_signer_list@Base 0
- sxg_encode_mi_sha256@Base 0
- sxg_encode_response@Base 0
- sxg_encoded_response_release@Base 0
- sxg_ensure_free_capacity_internal@Base 0
- sxg_evp_sign@Base 0
+ sxg_empty_encoded_response@Base 0.1
+ sxg_empty_header@Base 0.1
+ sxg_empty_raw_response@Base 0.1
+ sxg_empty_sig@Base 0.1
+ sxg_empty_signer@Base 0.1
+ sxg_empty_signer_list@Base 0.1
+ sxg_encode_mi_sha256@Base 0.1
+ sxg_encode_response@Base 0.1
+ sxg_encoded_response_release@Base 0.1
+ sxg_ensure_free_capacity_internal@Base 0.1
+ sxg_evp_sign@Base 0.1
  sxg_execute_ocsp_request@Base 0.2
  sxg_extract_ocsp_url@Base 0.2
  sxg_fetch_ocsp_response@Base 0.2
- sxg_generate@Base 0
- sxg_header_append_buffer@Base 0
- sxg_header_append_integer@Base 0
- sxg_header_append_string@Base 0
- sxg_header_copy@Base 0
- sxg_header_merge@Base 0
- sxg_header_release@Base 0
- sxg_header_serialize_cbor@Base 0
- sxg_raw_response_release@Base 0
- sxg_sig_generate_sig@Base 0
- sxg_sig_release@Base 0
- sxg_sig_set_cert_sha256@Base 0
- sxg_sig_set_cert_url@Base 0
- sxg_sig_set_ed25519key@Base 0
- sxg_sig_set_integrity@Base 0
- sxg_sig_set_name@Base 0
- sxg_sig_set_validity_url@Base 0
- sxg_signer_list_release@Base 0
- sxg_signer_release@Base 0
- sxg_write_array_cbor_header@Base 0
- sxg_write_buffer@Base 0
- sxg_write_byte@Base 0
- sxg_write_bytes@Base 0
- sxg_write_bytes_cbor@Base 0
- sxg_write_bytes_cbor_header@Base 0
-#MISSING: 0.2# sxg_write_cbor_header@Base 0
-#MISSING: 0.2# sxg_write_cbor_map_header@Base 0
- sxg_write_cert_chain_cbor@Base 0
- sxg_write_header_integrity@Base 0
- sxg_write_int@Base 0
- sxg_write_map_cbor_header@Base 0
- sxg_write_signature@Base 0
- sxg_write_string@Base 0
- sxg_write_utf8_cbor_header@Base 0
- sxg_write_utf8string_cbor@Base 0
+ sxg_generate@Base 0.1
+ sxg_header_append_buffer@Base 0.1
+ sxg_header_append_integer@Base 0.1
+ sxg_header_append_string@Base 0.1
+ sxg_header_copy@Base 0.1
+ sxg_header_merge@Base 0.1
+ sxg_header_release@Base 0.1
+ sxg_header_serialize_cbor@Base 0.1
+ sxg_raw_response_release@Base 0.1
+ sxg_sig_generate_sig@Base 0.1
+ sxg_sig_release@Base 0.1
+ sxg_sig_set_cert_sha256@Base 0.1
+ sxg_sig_set_cert_url@Base 0.1
+ sxg_sig_set_ed25519key@Base 0.1
+ sxg_sig_set_integrity@Base 0.1
+ sxg_sig_set_name@Base 0.1
+ sxg_sig_set_validity_url@Base 0.1
+ sxg_signer_list_release@Base 0.1
+ sxg_signer_release@Base 0.1
+ sxg_write_array_cbor_header@Base 0.2
+ sxg_write_buffer@Base 0.1
+ sxg_write_byte@Base 0.1
+ sxg_write_bytes@Base 0.1
+ sxg_write_bytes_cbor@Base 0.1
+ sxg_write_bytes_cbor_header@Base 0.2
+#MISSING: 0.2# sxg_write_cbor_header@Base 0.2
+#MISSING: 0.2# sxg_write_cbor_map_header@Base 0.2
+ sxg_write_cert_chain_cbor@Base 0.2
+ sxg_write_header_integrity@Base 0.1
+ sxg_write_int@Base 0.1
+ sxg_write_map_cbor_header@Base 0.2
+ sxg_write_signature@Base 0.1
+ sxg_write_string@Base 0.1
+ sxg_write_utf8_cbor_header@Base 0.2
+ sxg_write_utf8string_cbor@Base 0.2
