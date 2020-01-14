@@ -25,7 +25,6 @@ Appends the CBOR header for a byte string (exposed for test).
 Returns `true` on success.
 On fail, `target` will not be changed.
 
-
 ### bool sxg\_write\_bytes\_cbor(const uint8\_t\* bytes, size\_t length, sxg\_buffer\_t\* target)
 
 Appends a byte string encoded in CBOR. Returns `true` on success.

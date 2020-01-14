@@ -25,6 +25,7 @@ Vector of `sxg_signer_t`, you can read all fields, but you should modify them
 via dedicated APIs except contents of `sxg_signer_t`.
 
 #### sxg\_signer\_t\* signers
+
 signer_list
 Head pointer of signers vector.
 Initially `NULL`.
@@ -66,7 +67,6 @@ Unix time of SXG expiration time.
 Validity URL embedded into SXG file.
 Always null terminated.
 
-
 ## Functions
 
 ### sxg\_signer\_list\_t sxg\_empty\_signer\_list()
@@ -86,7 +86,6 @@ Empty `sxg_signer_list_t` structure with zero size and zero capacity.
 ```c
 sxg_signer_list_t signers = sxg_empty_signer_list();
 ```
-
 
 ### void sxg\_signer\_list\_release(sxg\_signer\_list\_t\* target)
 
@@ -110,7 +109,7 @@ sxg_signer_list_t signers = sxg_empty_signer_list();
 sxg_signer_list_release(&signers);
 ```
 
-### bool sxg_add\_ecdsa\_signer(const char\\* name, uint64\_t date, uint64\_t expires, const char\* validity\_url, EVP\_PKEY\* private\_key, X509\* public\_key, const char\* certificate\_url, sxg\_signer\_list\_t\* target)
+### bool sxg\_add\_ecdsa\_signer(const char\* name, uint64\_t date, uint64\_t expires, const char\* validity\_url, EVP\_PKEY\* private\_key, X509\* public\_key, const char\* certificate\_url, sxg\_signer\_list\_t\* target)
 
 Appends new ecdsa signer to signer list.
 Copies the string parameters and increments the reference count of `private_key` and `public_key`.
@@ -123,7 +122,7 @@ Copies the string parameters and increments the reference count of `private_key`
 - `validity_url` : Validity URL to be embedded into SXG. Must be null terminated. Will be deep copied.
 - `private_key` : ECDSA private key to be used for generating signature. Reference count will be incremented.
 - `public_key` : X509 certificate corresponding to the `private_key`. Reference count will be incremented.
-- `certificate_url` : URL for distributing CBOR file of the public_key. Will be deep copied.
+- `certificate_url` : URL for distributing CBOR file of the `public_key`. Will be deep copied.
 - `target` : Signer list to be modified.
 
 #### Returns
@@ -164,8 +163,7 @@ X509_free(cert);
 sxg_signer_list_release(&signers);
 ```
 
-
-### bool sxg_add\_ed25519\_signer(const char\* name, uint64\_t date, uint64\_t expires, const char\* validity\_url, EVP\_PKEY\* private\_key, EVP\_PKEY\* public\_key, sxg\_signer\_list\_t\* target)
+### bool sxg\_add\_ed25519\_signer(const char\* name, uint64\_t date, uint64\_t expires, const char\* validity\_url, EVP\_PKEY\* private\_key, EVP\_PKEY\* public\_key, sxg\_signer\_list\_t\* target)
 
 Appends new Ed25519 signer to signer list. Copies the string parameters and
 increments the reference counts of `private_key` and `public_key`.
@@ -218,4 +216,3 @@ EVP_PKEY_free(private_key);
 EVP_PKEY_free(public_key);
 sxg_signer_list_release(&signers);
 ```
-f

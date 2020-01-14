@@ -35,7 +35,7 @@ Nothing.
 
 Empty `sxg_encoded_response_t`.
 
-### bool sxg\_encode\_response(const size\_t mi\_record\_size, const sxg\_raw\_response\_t* src, sxg\_encoded\_response\_t* dst)
+### bool sxg\_encode\_response(const size\_t mi\_record\_size, const sxg\_raw\_response\_t\* src, sxg\_encoded\_response\_t\* dst)
 
 Encodes and generates `encoded_response_t` from `raw_response_t` with MICE encoding record size.
 
@@ -64,7 +64,7 @@ sxg_raw_response_release(&src);
 sxg_encoded_response_release(&dst);
 ```
 
-### void sxg\_encoded\_response\_release(sxg\_encoded\_response\_t* target)
+### void sxg\_encoded\_response\_release(sxg\_encoded\_response\_t\* target)
 
 Releases memory of `encoded_response_t`.
 
@@ -76,7 +76,7 @@ Releases memory of `encoded_response_t`.
 
 Nothing.
 
-### bool sxg\_write\_header\_integrity(const sxg\_encoded\_response\_t* src, sxg\_buffer\_t* target)
+### bool sxg\_write\_header\_integrity(const sxg\_encoded\_response\_t\* src, sxg\_buffer\_t\* target)
 
 Writes the header integrity into given buffer.
 The calculated integrity is appended to the end of the target `sxg_buffer`.
@@ -94,6 +94,7 @@ On fail, `target` may contain incomplete data.
 #### Example
 
 Print integrity.
+
 ```c
 sxg_raw_response_t src = sxg_empty_raw_response();
 sxg_encoded_response_t encoded = sxg_empty_encoded_response();
