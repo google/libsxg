@@ -124,6 +124,13 @@ add_custom_target (
     clang-format -style=file -i
   COMMENT "Formating with clang-format ...")
 
+# This target requires [markdownlint](https://github.com/igorshubovych/markdownlint-cli) executable in your path.
+add_custom_target (
+  man_format
+  COMMAND
+    find ${CMAKE_SOURCE_DIR}/docs/|grep md$ | xargs markdownlint -c ${CMAKE_SOURCE_DIR}/.markdownlint
+  COMMENT "Formating with markdownlint ...")
+
 # ##############################################################################
 # Testing
 # ##############################################################################
