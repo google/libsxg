@@ -20,7 +20,7 @@ rm "${destdir}/*" -rf
 echo "Working in ${WORKDIR}"
 
 cd "${WORKDIR}"
-git clone -b add-man "${REPOSITORY}" libsxg-repo
+git clone -b master "${REPOSITORY}" libsxg-repo
 cp -r ${SRCDIR}/debian libsxg-repo
 cd libsxg-repo
 git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.orig.tar.gz" \

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Signed HTTP Exchange library
 [![Build Status](https://travis-ci.org/google/libsxg.svg?branch=master)](https://travis-ci.org/google/libsxg)
 
@@ -117,4 +118,13 @@ You can compile it like.
 
 ```bash
 $ gcc sxgsample.c -lsxg -lcrypto
+```
+
+# libsxg packaging for Debian
+
+## Usage
+
+You can build your .deb package by this command.
+```bash
+$ ./build_deb https://github.com/google/libsxg
 ```
