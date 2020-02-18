@@ -22,7 +22,6 @@
 #include <string.h>
 
 #include "libsxg/internal/sxg_buffer.h"
-#include "libsxg/internal/sxg_header.h"
 #include "libsxg/internal/sxg_sig.h"
 
 static bool write_signature(const sxg_signer_t* signer,

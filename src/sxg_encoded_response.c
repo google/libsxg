@@ -18,7 +18,6 @@
 
 #include "libsxg/internal/sxg_buffer.h"
 #include "libsxg/internal/sxg_codec.h"
-#include "libsxg/internal/sxg_header.h"
 
 sxg_encoded_response_t sxg_empty_encoded_response() {
   static const sxg_encoded_response_t empty_response = {

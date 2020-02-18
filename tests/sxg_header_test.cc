@@ -19,7 +19,6 @@
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_buffer.h"
 #include "libsxg/internal/sxg_cbor.h"
-#include "libsxg/internal/sxg_header.h"
 #include "test_util.h"
 
 namespace {

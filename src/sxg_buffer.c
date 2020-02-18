@@ -116,46 +116,6 @@ bool sxg_write_string(const char* string, sxg_buffer_t* target) {
   return sxg_write_bytes((const uint8_t*)string, strlen(string), target);
 }
 
-size_t sxg_cbor_bytes_header_serialized_size(size_t size) {
-  if (size <= 0x17) {
-    return 1;
-  } else if (size <= 0xff) {
-    return 2;
-  } else if (size <= 0xffff) {
-    return 3;
-  } else if (size <= 0xffffffff) {
-    return 5;
-  } else {
-    return 9;
-  }
-}
-
-uint8_t sxg_cbor_bytes_header_prefix(size_t size) {
-  if (size <= 0x17) {
-    return 0x40 + size;
-  } else if (size <= 0xff) {
-    return 0x58;
-  } else if (size <= 0xffff) {
-    return 0x59;
-  } else if (size <= 0xffffffff) {
-    return 0x5a;
-  } else {
-    return 0x5b;
-  }
-}
-
-bool sxg_write_cbor_header(size_t length, sxg_buffer_t* target) {
-  const size_t header_byte_size = sxg_cbor_bytes_header_serialized_size(length);
-  const uint8_t prefix = sxg_cbor_bytes_header_prefix(length);
-  if (!sxg_ensure_buffer_free_capacity(header_byte_size, target)) {
-    return false;
-  }
-  sxg_serialize_int(prefix, 1, target->data);
-  sxg_serialize_int(length, header_byte_size - 1, target->data + 1);
-  target->size += header_byte_size;
-  return true;
-}
-
 void sxg_serialize_int(uint64_t num, int nbytes, uint8_t* dest) {
   size_t pos = 0;
   for (int i = nbytes - 1; i >= 0; --i) {

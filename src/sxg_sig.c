@@ -235,12 +235,7 @@ static size_t sxg_write_structured_header_string(const char* string,
 
 static size_t sxg_write_structured_header_uint_size(uint64_t num) {
   char integer_buffer[22];
-  const int nbytes =
-      snprintf(integer_buffer, sizeof(integer_buffer), "%" PRIu64, num);
-
-  assert(nbytes > 0);
-  assert((size_t)nbytes + 1 <= sizeof(integer_buffer));
-
+  snprintf(integer_buffer, sizeof(integer_buffer), "%" PRIu64, num);
   return strlen(integer_buffer);
 }
 
@@ -248,10 +243,6 @@ static size_t sxg_write_structured_header_uint(uint64_t num, uint8_t* target) {
   char integer_buffer[22];
   const int nbytes =
       snprintf(integer_buffer, sizeof(integer_buffer), "%" PRIu64, num);
-
-  assert(nbytes > 0);
-  assert((size_t)nbytes + 1 <= sizeof(integer_buffer));
-
   memcpy(target, integer_buffer, nbytes);
   return nbytes;
 }

@@ -14,51 +14,41 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef LIBSXG_SXG_CERT_CHAIN_H_
-#define LIBSXG_SXG_CERT_CHAIN_H_
+#ifndef LIBSXG_INTERNAL_SXG_CERT_CHAIN_H_
+#define LIBSXG_INTERNAL_SXG_CERT_CHAIN_H_
 
 #include <openssl/ct.h>
 #include <openssl/ocsp.h>
 #include <openssl/x509.h>
 #include <stdbool.h>
 
-#include "libsxg/internal/sxg_cert_chain.h"
-#include "libsxg/sxg_buffer.h"
 #include "libsxg/sxg_cbor.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct {
-  X509* certificate;
-  OCSP_RESPONSE* ocsp_response;
-  sxg_buffer_t sct_list;
-} sxg_cert_t;
+typedef struct sxg_cert_chain sxg_cert_chain_t;
 
-typedef struct sxg_cert_chain {
-  sxg_cert_t* certs;
-  size_t size;
-  size_t capacity;
-} sxg_cert_chain_t;
+// Writes Cert-Chain to dst. Returns true on success.
+bool sxg_write_cert_chain_cbor(const sxg_cert_chain_t* chain,
+                               sxg_buffer_t* dst);
 
-// Creates empty cert chain. Never fails.
-sxg_cert_chain_t sxg_empty_cert_chain();
+// Returns OCSP URL length of specified X509 certificate.
+size_t sxg_extract_ocsp_url_size(X509* cert);
 
 // Extracts OCSP URL to buffer from specified X509 certificate.
-bool sxg_extract_ocsp_url_to_buffer(X509* cert, sxg_buffer_t* dst);
+bool sxg_extract_ocsp_url(X509* cert, uint8_t* dst);
 
-// Releases all memory and content of Cert-Chain.
-void sxg_cert_chain_release(sxg_cert_chain_t* target);
+// Sends request to the `io` and receieves and parses the response to `dst`.
+bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
+                              OCSP_RESPONSE** dst);
 
-// Adds new certificate to the Cert-Chain. OCSP response and SCT list can
-// be NULL. Returns true on success.
-bool sxg_cert_chain_append_cert(X509* cert, OCSP_RESPONSE* ocsp_response,
-                                const sxg_buffer_t* sct_list,
-                                sxg_cert_chain_t* target);
+// Fetches OCSP response from specified cert.
+bool sxg_fetch_ocsp_response(X509* cert, X509* issuer, OCSP_RESPONSE** dst);
 
 #ifdef __cplusplus
 }  // extern "C"
 #endif
 
-#endif  // LIBSXG_SXG_CERT_CHAIN_H_
+#endif  // LIBSXG_INTERNAL_SXG_CERT_CHAIN_H_

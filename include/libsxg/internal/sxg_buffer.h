@@ -33,7 +33,7 @@ bool sxg_ensure_free_capacity_internal(size_t size, size_t desired_margin,
 bool sxg_ensure_buffer_free_capacity(size_t desired_margin,
                                      sxg_buffer_t* target);
 
-// Write integer in big-endian format to `dest`.
+// Write integer in big-endian format to .
 void sxg_serialize_int(uint64_t num, int nbytes, uint8_t* dest);
 
 // Prints the content of the buffer to stdout in a hexdump-like format.
