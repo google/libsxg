@@ -30,9 +30,11 @@ bool sxg_ensure_free_capacity_internal(size_t size, size_t desired_margin,
                                        size_t item_size, size_t* capacity,
                                        void** buffer);
 
-// Appends an integer in big-endian format with nbytes. nbytes must be in the
-// range from 1 to 8. Returns true on success.
-bool sxg_write_int(uint64_t num, int nbytes, sxg_buffer_t* target);
+bool sxg_ensure_buffer_free_capacity(size_t desired_margin,
+                                     sxg_buffer_t* target);
+
+// Write integer in big-endian format to `dest`.
+void sxg_serialize_int(uint64_t num, int nbytes, uint8_t* dest);
 
 // Prints the content of the buffer to stdout in a hexdump-like format.
 void sxg_buffer_dump(const sxg_buffer_t* target);

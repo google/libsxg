@@ -52,9 +52,11 @@ static bool write_signature(const sxg_signer_t* signer,
       break;
   }
   success = success &&
-            sxg_sig_generate_sig(fallback_url, serialized_headers,
-                                 signer->private_key, &sig) &&
-            sxg_write_signature(&sig, dst);
+            sxg_sig_generate_sig(fallback_url, serialized_headers->data,
+                                 serialized_headers->size, signer->private_key,
+                                 &sig) &&
+            sxg_buffer_resize(sxg_write_signature_size(&sig), dst);
+  sxg_write_signature(&sig, dst->data);
 
   sxg_sig_release(&sig);
   return success;
@@ -74,6 +76,8 @@ static bool write_signatures(const sxg_signer_list_t* signers,
   }
   return success;
 }
+
+static const char* kPrefix = "sxg1-b3";
 
 bool sxg_generate(const char* fallback_url, const sxg_signer_list_t* signers,
                   const sxg_encoded_response_t* resp, sxg_buffer_t* dst) {
@@ -99,7 +103,7 @@ bool sxg_generate(const char* fallback_url, const sxg_signer_list_t* signers,
   // drafts MUST NOT use it and MUST use another implementation-specific string
   // beginning with "sxg1-" and ending with a 0 byte instead." [spec text]
   sxg_buffer_release(dst);
-  bool success = sxg_write_string("sxg1-b3", dst) && sxg_write_byte(0, dst);
+  bool success = sxg_write_string(kPrefix, dst) && sxg_write_byte(0, dst);
 
   // Step 2. 2 bytes storing a big-endian integer "fallbackUrlLength".
   success = success && sxg_write_int(strlen(fallback_url), 2, dst);

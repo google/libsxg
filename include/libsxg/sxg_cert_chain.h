@@ -23,6 +23,7 @@
 #include <stdbool.h>
 
 #include "libsxg/sxg_buffer.h"
+#include "libsxg/sxg_cbor.h"
 
 #ifdef __cplusplus
 extern "C" {
