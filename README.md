@@ -24,7 +24,7 @@ Simple cmake project.
 ```ShellSession
 $ mkdir build
 $ cd build
-$ cmake .. -DCMAKE_BUILD_TYPE=Release
+$ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_LIBDIR=some/lib/dir -DCMAKE_INSTALL_BINDIR=some/bin/dir
 $ make sxg
 $ sudo make install
 ```
