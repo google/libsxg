@@ -55,7 +55,7 @@ static bool write_signature(const sxg_signer_t* signer,
                                  serialized_headers->size, signer->private_key,
                                  &sig) &&
             sxg_buffer_resize(sxg_write_signature_size(&sig), dst);
-  sxg_write_signature(&sig, dst->data);
+  success = success && sxg_write_signature(&sig, dst->data) > 0;
 
   sxg_sig_release(&sig);
   return success;

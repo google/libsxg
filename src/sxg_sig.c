@@ -187,14 +187,17 @@ bool sxg_sig_generate_sig(const char* fallback_url, const uint8_t* header,
             sxg_write_bytes(header, header_size, &message);
 
   // Generate sigature of the message.
-  sig->sig = OPENSSL_realloc(
-      sig->sig, sxg_evp_sign_size(private_key, message.data, message.size));
-
+  const size_t buffer_size =
+      sxg_evp_sign_size(private_key, message.data, message.size);
+  success = success && buffer_size != 0;
+  if (success) {
+    sig->sig = OPENSSL_realloc(sig->sig, buffer_size);
+  }
   success = success && sig->sig != NULL;
-
-  sig->sig_size =
-      sxg_evp_sign(private_key, message.data, message.size, sig->sig);
-
+  if (success) {
+    sig->sig_size =
+        sxg_evp_sign(private_key, message.data, message.size, sig->sig);
+  }
   success = success && sig->sig_size > 0;
   sxg_buffer_release(&message);
 

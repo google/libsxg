@@ -15,4 +15,7 @@ script:
   - cmake -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC ..
   - make VERBOSE=1
   - ctest
+  - ./sxg_codec_test
   - ./nfail_malloc_test
+  - ./nfail_malloc_test_sanitizer
+  - ./sxg_codec_test

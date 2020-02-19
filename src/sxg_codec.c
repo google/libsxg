@@ -17,6 +17,7 @@
 #include "libsxg/internal/sxg_codec.h"
 
 #include <assert.h>
+#include <openssl/err.h>
 #include <openssl/sha.h>
 #include <openssl/x509.h>
 #include <string.h>
@@ -249,14 +250,14 @@ size_t sxg_evp_sign(EVP_PKEY* private_key, const uint8_t* src, size_t length,
   // EVP_PKEY_sign_init() and EVP_PKEY_sign() return 1 for success and 0 or a
   // negative value for failure. In particular a return value of -2 indicates
   // the operation is not supported by the public key algorithm.
-  size_t sig_size;
+  size_t sig_size = 1024;
   bool success =
       ctx != NULL &&
       (EVP_DigestSignInit(ctx, NULL, digest_func, NULL, private_key) == 1) &&
       (EVP_DigestSign(ctx, dst, &sig_size, src, length) == 1);
-  EVP_MD_CTX_free(ctx);
   if (!success) {
-    return 0;
+    sig_size = 0;
   }
+  EVP_MD_CTX_destroy(ctx);
   return sig_size;
 }

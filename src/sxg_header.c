@@ -20,7 +20,6 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <openssl/crypto.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "libsxg/internal/sxg_buffer.h"
