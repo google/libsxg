@@ -25,23 +25,19 @@
 extern "C" {
 #endif
 
-// Returns size of expected digest length (fixed).
-inline size_t sxg_sha256_size() { return SHA256_DIGEST_LENGTH; }
-inline size_t sxg_sha384_size() { return SHA384_DIGEST_LENGTH; }
-
 // Writes SHA-hash of `src` into `dst`. Returns true on success.
 bool sxg_sha256(const uint8_t* src, size_t length, uint8_t* dst);
 bool sxg_sha384(const uint8_t* src, size_t length, uint8_t* dst);
 
-// Returns size of expected buffer length to input size.
+// Returns expected size of base64 encoded from data having `length` size.
 size_t sxg_base64encode_size(const size_t length);
 
 // Writes base64 of byte array to `dst`. Returns true on success.
 bool sxg_base64encode(const uint8_t* src, size_t length, uint8_t* dst);
 
+// Returns expected size of result of Merkle Integrity Content Encoding (MICE)
+// encoded from data having `length` size.
 size_t sxg_mi_sha256_size(const size_t length, const uint64_t record_size);
-
-size_t sxg_mi_sha256_remainder_size(size_t size, uint64_t record_size);
 
 // Writes `encoded` and `proof` with Merkle Integrity Content Encoding(MICE)
 // of `src`. Returns true on success.

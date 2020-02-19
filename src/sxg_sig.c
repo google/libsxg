@@ -88,7 +88,7 @@ bool sxg_sig_set_cert_url(const char* cert_url, sxg_sig_t* sig) {
   if (sig->cert_url == NULL) {
     return false;
   }
-  strcpy(sig->cert_url, cert_url);
+  strncpy(sig->cert_url, cert_url, sig->cert_url_size);
   return true;
 }
 
@@ -243,6 +243,12 @@ static size_t sxg_write_structured_header_uint(uint64_t num, uint8_t* target) {
   return nbytes;
 }
 
+static size_t write_string(uint8_t* src, char* null_terminated_string) {
+  size_t length = strlen(null_terminated_string);
+  memcpy(src, null_terminated_string, length);
+  return length;
+}
+
 size_t sxg_write_signature(const sxg_sig_t* const sig, uint8_t* dst) {
   if (sig->name_size == 0 || sig->integrity_size == 0 || sig->sig_size == 0 ||
       sig->validity_url_size == 0) {
@@ -255,49 +261,41 @@ size_t sxg_write_signature(const sxg_sig_t* const sig, uint8_t* dst) {
   dst[wrote++] = ';';
 
   if (sig->cert_sha256_size != 0) {
-    strcpy((char*)&dst[wrote], "cert-sha256=");
-    wrote += strlen("cert-sha256=");
+    wrote += write_string(&dst[wrote], "cert-sha256=");
     wrote += sxg_write_structured_header_binary(
         sig->cert_sha256, sig->cert_sha256_size, &dst[wrote]);
     dst[wrote++] = ';';
 
-    strcpy((char*)&dst[wrote], "cert-url=");
-    wrote += strlen("cert-url=");
+    wrote += write_string(&dst[wrote], "cert-url=");
     wrote += sxg_write_structured_header_string(
         sig->cert_url, sig->cert_url_size, &dst[wrote]);
     dst[wrote++] = ';';
   } else if (sig->ed25519key_size != 0) {
-    strcpy((char*)&dst[wrote], "ed25519key=");
-    wrote += strlen("cert-url=");
+    wrote += write_string(&dst[wrote], "ed25519key=");
     wrote += sxg_write_structured_header_binary(
         sig->ed25519key, sig->ed25519key_size, &dst[wrote]);
     dst[wrote++] = ';';
   }
 
-  strcpy((char*)&dst[wrote], "date=");
-  wrote += strlen("date=");
+  wrote += write_string(&dst[wrote], "date=");
   wrote += sxg_write_structured_header_uint(sig->date, &dst[wrote]);
   dst[wrote++] = ';';
 
-  strcpy((char*)&dst[wrote], "expires=");
-  wrote += strlen("expires=");
+  wrote += write_string(&dst[wrote], "expires=");
   wrote += sxg_write_structured_header_uint(sig->expires, &dst[wrote]);
   dst[wrote++] = ';';
 
-  strcpy((char*)&dst[wrote], "integrity=");
-  wrote += strlen("integrity=");
+  wrote += write_string(&dst[wrote], "integrity=");
   wrote += sxg_write_structured_header_string(sig->integrity,
                                               sig->integrity_size, &dst[wrote]);
   dst[wrote++] = ';';
 
-  strcpy((char*)&dst[wrote], "sig=");
-  wrote += strlen("sig=");
+  wrote += write_string(&dst[wrote], "sig=");
   wrote +=
       sxg_write_structured_header_binary(sig->sig, sig->sig_size, &dst[wrote]);
   dst[wrote++] = ';';
 
-  strcpy((char*)&dst[wrote], "validity-url=");
-  wrote += strlen("validity-url=");
+  wrote += write_string(&dst[wrote], "validity-url=");
   wrote += sxg_write_structured_header_string(
       sig->validity_url, sig->validity_url_size, &dst[wrote]);
 

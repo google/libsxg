@@ -24,12 +24,14 @@ extern "C" {
 #endif
 
 // Extends buffer if it does not have enough memory for desired_margin *
-// item_size.
+// item_size. Does not touch `size` of the buffer.
 bool sxg_ensure_free_capacity_internal(size_t size, size_t desired_margin,
                                        size_t default_capacity,
                                        size_t item_size, size_t* capacity,
                                        void** buffer);
 
+// Extends buffer if it does not have enough memory for desired_margin*
+// item_size. Does not touch `size` of the buffer.
 bool sxg_ensure_buffer_free_capacity(size_t desired_margin,
                                      sxg_buffer_t* target);
 

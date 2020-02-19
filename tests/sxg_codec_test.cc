@@ -37,7 +37,7 @@ TEST(SxgCodecTest, Sha256) {
       "\x2c\x26\xb4\x6b\x68\xff\xc6\x8f\xf9\x9b\x45\x3c\x1d\x30\x41\x34\x13\x42"
       "\x2d\x70\x64\x83\xbf\xa0\xf9\x8a\x5e\x88\x62\x66\xe7\xae");
 
-  EXPECT_TRUE(sxg_buffer_resize(sxg_sha256_size(), &out));
+  EXPECT_TRUE(sxg_buffer_resize(SHA256_DIGEST_LENGTH, &out));
   EXPECT_TRUE(sxg_sha256(in.data, in.size, out.data));
   EXPECT_EQ(expected, BufferToString(out));
 
@@ -53,7 +53,7 @@ TEST(SxgCodecTest, Sha384) {
       "\x0c\x9a\x44\x17\x1d\x6b\x11\x80\xc6\xbe\x5c\xbb\x2e\xe3\xf7\x9d\x53\x2c"
       "\x8a\x1d\xd9\xef\x2e\x8e\x08\xe7\x52\xa3\xba\xbb");
 
-  EXPECT_TRUE(sxg_buffer_resize(sxg_sha384_size(), &out));
+  EXPECT_TRUE(sxg_buffer_resize(SHA384_DIGEST_LENGTH, &out));
   EXPECT_TRUE(sxg_sha384(in.data, in.size, out.data));
   EXPECT_EQ(expected, BufferToString(out));
 
@@ -95,7 +95,7 @@ TEST(SxgCodecTest, SHA256Base64) {
   sxg_write_int(0, 1, &input);
   std::string expected("dcRDgR2GM35DluAV13PzgnG6+pvQwPywfFvAu1UeFrs=");
 
-  EXPECT_TRUE(sxg_buffer_resize(sxg_sha256_size(), &digest));
+  EXPECT_TRUE(sxg_buffer_resize(SHA256_DIGEST_LENGTH, &digest));
   EXPECT_TRUE(sxg_sha256(input.data, input.size, digest.data));
   EXPECT_TRUE(
       sxg_buffer_resize(sxg_base64encode_size(digest.size), &base64_digest));

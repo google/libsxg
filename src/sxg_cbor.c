@@ -20,23 +20,6 @@
 
 #include "libsxg/internal/sxg_buffer.h"
 
-size_t sxg_write_initial_bytes_size(uint64_t length) {
-  // https://tools.ietf.org/html/rfc7049#appendix-B
-  // It writes cbor header for the type.
-  // In SXG, using smallest type header as possible is required.
-  if (length <= 0x17) {
-    return 1;
-  } else if (length <= 0xff) {
-    return 2;
-  } else if (length <= 0xffff) {
-    return 3;
-  } else if (length <= 0xffffffffULL) {
-    return 5;
-  } else {
-    return 9;
-  }
-}
-
 void sxg_write_initial_bytes(uint8_t type_offset, uint64_t length,
                              uint8_t* target) {
   // https://tools.ietf.org/html/rfc7049#appendix-B
@@ -56,6 +39,21 @@ void sxg_write_initial_bytes(uint8_t type_offset, uint64_t length,
   } else {
     target[0] = type_offset + 0x1b;
     sxg_serialize_int(length, 8, &target[1]);
+  }
+}
+
+// Returns expected length cbor prefix for `length` elements.
+static size_t sxg_write_initial_bytes_size(uint64_t length) {
+  if (length <= 0x17) {
+    return 1;
+  } else if (length <= 0xff) {
+    return 2;
+  } else if (length <= 0xffff) {
+    return 3;
+  } else if (length <= 0xffffffffULL) {
+    return 5;
+  } else {
+    return 9;
   }
 }
 

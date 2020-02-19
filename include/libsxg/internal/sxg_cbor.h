@@ -24,10 +24,7 @@
 extern "C" {
 #endif
 
-// Returns expected cbor initial bytes length.
-size_t sxg_write_initial_bytes_size(uint64_t length);
-
-// Writes cbor initial bytes to `target`.
+// Writes cbor prefix to `target` bytes for type offset.
 void sxg_write_initial_bytes(uint8_t type_offset, uint64_t length,
                              uint8_t* target);
 

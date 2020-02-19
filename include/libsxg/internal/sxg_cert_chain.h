@@ -40,11 +40,11 @@ size_t sxg_extract_ocsp_url_size(X509* cert);
 // Extracts OCSP URL to buffer from specified X509 certificate.
 bool sxg_extract_ocsp_url(X509* cert, uint8_t* dst);
 
-// Sends request to the `io` and receieves and parses the response to `dst`.
+// Sends request to `io` and receieves and parses the response to `dst`.
 bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
                               OCSP_RESPONSE** dst);
 
-// Fetches OCSP response from specified cert.
+// Fetches OCSP response from specified X509 certificate.
 bool sxg_fetch_ocsp_response(X509* cert, X509* issuer, OCSP_RESPONSE** dst);
 
 #ifdef __cplusplus
