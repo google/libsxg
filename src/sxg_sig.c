@@ -69,7 +69,7 @@ bool sxg_sig_set_name(const char* name, sxg_sig_t* sig) {
   if (sig->name == NULL) {
     return false;
   }
-  strcpy(sig->name, name);
+  strncpy(sig->name, name, sig->name_size);
   return true;
 }
 
@@ -111,7 +111,7 @@ bool sxg_sig_set_integrity(const char* integrity, sxg_sig_t* sig) {
   if (sig->integrity == NULL) {
     return false;
   }
-  strcpy(sig->integrity, integrity);
+  strncpy(sig->integrity, integrity, sig->integrity_size);
   return true;
 }
 
@@ -122,7 +122,7 @@ bool sxg_sig_set_validity_url(const char* validity_url, sxg_sig_t* sig) {
   if (sig->validity_url == NULL) {
     return false;
   }
-  strcpy(sig->validity_url, validity_url);
+  strncpy(sig->validity_url, validity_url, sig->validity_url_size);
   return true;
 };
 
@@ -209,12 +209,12 @@ static size_t sxg_write_structured_header_binary(const uint8_t* binary,
                                                  size_t length,
                                                  uint8_t* target) {
   size_t wrote = 0;
-  memcpy(&target[wrote++], "*", 1);
+  target[wrote++] = '*';
   if (!sxg_base64encode(binary, length, &target[wrote])) {
-    return false;
+    return 0;
   }
   wrote += sxg_base64encode_size(length);
-  memcpy(&target[wrote++], "*", 1);
+  target[wrote++] = '*';
   return wrote;
 }
 
@@ -226,24 +226,20 @@ static size_t sxg_write_structured_header_string(const char* string,
                                                  size_t length,
                                                  uint8_t* target) {
   size_t wrote = 0;
-  memcpy(&target[wrote++], "\"", 1);
+  target[wrote++] = '"';
   memcpy(&target[wrote], string, length);
   wrote += length;
-  memcpy(&target[wrote++], "\"", 1);
+  target[wrote++] = '"';
   return wrote;
-}
-
-static size_t sxg_write_structured_header_uint_size(uint64_t num) {
-  char integer_buffer[22];
-  snprintf(integer_buffer, sizeof(integer_buffer), "%" PRIu64, num);
-  return strlen(integer_buffer);
 }
 
 static size_t sxg_write_structured_header_uint(uint64_t num, uint8_t* target) {
   char integer_buffer[22];
   const int nbytes =
       snprintf(integer_buffer, sizeof(integer_buffer), "%" PRIu64, num);
-  memcpy(target, integer_buffer, nbytes);
+  if (target != NULL) {
+    memcpy(target, integer_buffer, nbytes);
+  }
   return nbytes;
 }
 
@@ -256,49 +252,49 @@ size_t sxg_write_signature(const sxg_sig_t* const sig, uint8_t* dst) {
   size_t wrote = 0;
   memcpy(&dst[wrote], sig->name, sig->name_size);
   wrote += sig->name_size;
-  memcpy(&dst[wrote++], ";", 1);
+  dst[wrote++] = ';';
 
   if (sig->cert_sha256_size != 0) {
     strcpy((char*)&dst[wrote], "cert-sha256=");
     wrote += strlen("cert-sha256=");
     wrote += sxg_write_structured_header_binary(
         sig->cert_sha256, sig->cert_sha256_size, &dst[wrote]);
-    memcpy(&dst[wrote++], ";", 1);
+    dst[wrote++] = ';';
 
     strcpy((char*)&dst[wrote], "cert-url=");
     wrote += strlen("cert-url=");
     wrote += sxg_write_structured_header_string(
         sig->cert_url, sig->cert_url_size, &dst[wrote]);
-    memcpy(&dst[wrote++], ";", 1);
+    dst[wrote++] = ';';
   } else if (sig->ed25519key_size != 0) {
     strcpy((char*)&dst[wrote], "ed25519key=");
     wrote += strlen("cert-url=");
     wrote += sxg_write_structured_header_binary(
         sig->ed25519key, sig->ed25519key_size, &dst[wrote]);
-    memcpy(&dst[wrote++], ";", 1);
+    dst[wrote++] = ';';
   }
 
   strcpy((char*)&dst[wrote], "date=");
   wrote += strlen("date=");
   wrote += sxg_write_structured_header_uint(sig->date, &dst[wrote]);
-  memcpy(&dst[wrote++], ";", 1);
+  dst[wrote++] = ';';
 
   strcpy((char*)&dst[wrote], "expires=");
   wrote += strlen("expires=");
   wrote += sxg_write_structured_header_uint(sig->expires, &dst[wrote]);
-  memcpy(&dst[wrote++], ";", 1);
+  dst[wrote++] = ';';
 
   strcpy((char*)&dst[wrote], "integrity=");
   wrote += strlen("integrity=");
   wrote += sxg_write_structured_header_string(sig->integrity,
                                               sig->integrity_size, &dst[wrote]);
-  memcpy(&dst[wrote++], ";", 1);
+  dst[wrote++] = ';';
 
   strcpy((char*)&dst[wrote], "sig=");
   wrote += strlen("sig=");
   wrote +=
       sxg_write_structured_header_binary(sig->sig, sig->sig_size, &dst[wrote]);
-  memcpy(&dst[wrote++], ";", 1);
+  dst[wrote++] = ';';
 
   strcpy((char*)&dst[wrote], "validity-url=");
   wrote += strlen("validity-url=");
@@ -330,10 +326,10 @@ size_t sxg_write_signature_size(const sxg_sig_t* sig) {
   }
 
   estimated_size += strlen("date=");
-  estimated_size += sxg_write_structured_header_uint_size(sig->date) + 1;
+  estimated_size += sxg_write_structured_header_uint(sig->date, NULL) + 1;
 
   estimated_size += strlen("expires=");
-  estimated_size += sxg_write_structured_header_uint_size(sig->expires) + 1;
+  estimated_size += sxg_write_structured_header_uint(sig->expires, NULL) + 1;
 
   estimated_size += strlen("integrity=");
   estimated_size +=

@@ -76,7 +76,7 @@ static bool write_signatures(const sxg_signer_list_t* signers,
   return success;
 }
 
-static const char* kPrefix = "sxg1-b3";
+static const char kPrefix[] = "sxg1-b3";
 
 bool sxg_generate(const char* fallback_url, const sxg_signer_list_t* signers,
                   const sxg_encoded_response_t* resp, sxg_buffer_t* dst) {

@@ -213,7 +213,7 @@ TEST(SxgCodecTest, EvpSign) {
       sxg_evp_sign_size(private_key, input.data, input.size), &output));
   size_t sig_size =
       sxg_evp_sign(private_key, input.data, input.size, output.data);
-  EXPECT_LT(0u, sig_size);
+  EXPECT_NE(0u, sig_size);
   EXPECT_TRUE(sxg_buffer_resize(sig_size, &output));
 
   EVP_MD_CTX* const mdctx = EVP_MD_CTX_new();
