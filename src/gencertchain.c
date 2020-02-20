@@ -14,6 +14,7 @@
 
 #include "libsxg.h"
 #include "libsxg/internal/sxg_buffer.h"
+#include "libsxg/internal/sxg_codec.h"
 
 static const struct option kOptions[] = {
     {"help", no_argument, NULL, 'h'},

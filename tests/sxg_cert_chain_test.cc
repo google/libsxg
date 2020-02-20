@@ -70,7 +70,7 @@ TEST_F(CertChainTest, ExtractOcspUri) {
   SetEcdsa256();
   sxg_buffer_t url = sxg_empty_buffer();
 
-  EXPECT_TRUE(sxg_extract_ocsp_url(cert_, &url));
+  EXPECT_TRUE(sxg_extract_ocsp_url_to_buffer(cert_, &url));
   EXPECT_EQ('\0', url.data[url.size - 1]);  // Expects null termination.
   url.size -= 1;                            // remove the null termination.
   ASSERT_EQ("http://ocsp.digicert.com", sxg_test::BufferToString(url));
@@ -125,7 +125,7 @@ TEST_F(CertChainTest, FailedToExtractOcspUri) {
   SetBadCert();  // Does not contains ocsp information.
   sxg_buffer_t url = sxg_empty_buffer();
 
-  EXPECT_FALSE(sxg_extract_ocsp_url(cert_, &url));
+  EXPECT_FALSE(sxg_extract_ocsp_url_to_buffer(cert_, &url));
 
   sxg_buffer_release(&url);
 }

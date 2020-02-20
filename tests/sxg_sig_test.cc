@@ -60,8 +60,10 @@ TEST(SxgSig, MakeSignature) {
   EXPECT_TRUE(sxg_sig_set_cert_url("https://cert.test/cert.cbor", &sig));
   EXPECT_TRUE(sxg_sig_set_integrity("digest/mi-sha256-03", &sig));
   EXPECT_TRUE(sxg_sig_set_validity_url("https://cert.test/validity.msg", &sig));
-  EXPECT_TRUE(sxg_sig_generate_sig("https://sxg.test/", &header, pkey, &sig));
-  EXPECT_TRUE(sxg_write_signature(&sig, &output));
+  EXPECT_TRUE(sxg_sig_generate_sig("https://sxg.test/", header.data,
+                                   header.size, pkey, &sig));
+  EXPECT_TRUE(sxg_buffer_resize(sxg_write_signature_size(&sig), &output));
+  EXPECT_TRUE(sxg_write_signature(&sig, output.data));
   FillSignature(&output);
   EXPECT_EQ(expected, sxg_test::BufferToString(output));
 

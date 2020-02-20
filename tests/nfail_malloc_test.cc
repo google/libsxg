@@ -113,7 +113,6 @@ TEST_F(FailAtNTest, GenerateSxg) {
     // Encode contents.
     sxg_encoded_response_t encoded = sxg_empty_encoded_response();
     success = success && sxg_encode_response(4096, &content, &encoded);
-
     // Generate SXG.
     sxg_buffer_t result = sxg_empty_buffer();
     success = success && sxg_generate("https://original.example.com/index.html",

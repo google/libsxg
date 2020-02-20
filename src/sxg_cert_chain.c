@@ -81,8 +81,46 @@ static AUTHORITY_INFO_ACCESS* extract_aia_info(X509_EXTENSION* ext) {
   return (AUTHORITY_INFO_ACCESS*)X509V3_EXT_d2i(ext);
 }
 
-bool sxg_extract_ocsp_url(X509* cert, sxg_buffer_t* dst) {
-  sxg_buffer_release(dst);
+size_t sxg_extract_ocsp_url_size(X509* cert) {
+  if (cert == NULL) {
+    return 0;
+  }
+  const int extensions = X509_get_ext_count(cert);
+  for (int i = 0; i < extensions; ++i) {
+    AUTHORITY_INFO_ACCESS* const aia_info =
+        extract_aia_info(X509_get_ext(cert, i));
+    if (aia_info == NULL) {
+      continue;
+    }
+    for (int i = 0; i < sk_ACCESS_DESCRIPTION_num(aia_info); ++i) {
+      ACCESS_DESCRIPTION* ad = sk_ACCESS_DESCRIPTION_value(aia_info, i);
+      if (ad == NULL) {
+        continue;
+      }
+      int ad_nid = OBJ_obj2nid(ad->method);
+      switch (ad_nid) {
+        case NID_ad_OCSP: {
+          if (ad->location == NULL || ad->location->type != GEN_URI) {
+            continue;
+          }
+          ASN1_IA5STRING* uri = ad->location->d.uniformResourceIdentifier;
+          if (uri == NULL || uri->data == NULL || uri->length == 0) {
+            continue;
+          }
+          const size_t size = uri->length;
+          AUTHORITY_INFO_ACCESS_free(aia_info);
+          return size;
+        }
+        default:
+          break;
+      }
+    }
+    AUTHORITY_INFO_ACCESS_free(aia_info);
+  }
+  return 0;
+}
+
+bool sxg_extract_ocsp_url(X509* cert, uint8_t* dst) {
   if (cert == NULL) {
     return false;
   }
@@ -108,10 +146,10 @@ bool sxg_extract_ocsp_url(X509* cert, sxg_buffer_t* dst) {
           if (uri == NULL || uri->data == NULL || uri->length == 0) {
             continue;
           }
-          const bool success = sxg_write_bytes(uri->data, uri->length, dst) &&
-                               sxg_write_byte('\0', dst);
+          memcpy(dst, uri->data, uri->length);
+          dst[uri->length] = '\0';
           AUTHORITY_INFO_ACCESS_free(aia_info);
-          return success;
+          return true;
         }
         default:
           break;
@@ -120,6 +158,17 @@ bool sxg_extract_ocsp_url(X509* cert, sxg_buffer_t* dst) {
     AUTHORITY_INFO_ACCESS_free(aia_info);
   }
   return false;
+}
+
+bool sxg_extract_ocsp_url_to_buffer(X509* cert, sxg_buffer_t* dst) {
+  const size_t url_length =
+      sxg_extract_ocsp_url_size(cert) + 1;  // +1 for NULL termination.
+  if (url_length == 0 || !sxg_ensure_buffer_free_capacity(url_length, dst) ||
+      !sxg_extract_ocsp_url(cert, &dst->data[dst->size])) {
+    return false;
+  }
+  dst->size += url_length;
+  return true;
 }
 
 static bool wait_fd(int fd, bool read, bool write) {
@@ -198,7 +247,7 @@ bool sxg_fetch_ocsp_response(X509* cert, X509* issuer, OCSP_RESPONSE** dst) {
   char* path = NULL;
   BIO* cbio = NULL;
   bool success =
-      sxg_extract_ocsp_url(cert, &ocsp_url) &&
+      sxg_extract_ocsp_url_to_buffer(cert, &ocsp_url) &&
       sxg_make_ocsp_session((const char*)ocsp_url.data, &path, &cbio) &&
       BIO_do_connect(cbio) > 0 &&
       sxg_execute_ocsp_request(

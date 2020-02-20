@@ -17,35 +17,16 @@
 #ifndef LIBSXG_INTERNAL_SXG_CBOR_H_
 #define LIBSXG_INTERNAL_SXG_CBOR_H_
 
-#include "libsxg/sxg_buffer.h"
+#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Appends the initial bytes for a byte string (for internal use).
-// Returns true on success.
-bool sxg_write_bytes_cbor_header(uint64_t length, sxg_buffer_t* target);
-
-// Appends the initial bytes for a utf-8 string (for internal use).
-// Returns true on success.
-bool sxg_write_utf8_cbor_header(uint64_t length, sxg_buffer_t* target);
-
-// Appends the header for a map (visible for testing).
-// Returns true on success.
-bool sxg_write_map_cbor_header(size_t size, sxg_buffer_t* target);
-
-// Appends the initial bytes for a array.
-// Returns true on success.
-bool sxg_write_array_cbor_header(uint64_t length, sxg_buffer_t* target);
-
-// Appends utf-8 encoded string to the buffer. `string` must be null terminated.
-// Returns true on success.
-bool sxg_write_utf8string_cbor(const char* string, sxg_buffer_t* target);
-
-// Appends a byte string encoded in CBOR. Returns true on success.
-bool sxg_write_bytes_cbor(const uint8_t* bytes, size_t length,
-                          sxg_buffer_t* target);
+// Writes cbor prefix to `target` bytes for type offset.
+void sxg_write_initial_bytes(uint8_t type_offset, uint64_t length,
+                             uint8_t* target);
 
 #ifdef __cplusplus
 }  // extern "C"

@@ -56,6 +56,11 @@ sxg_buffer_t sxg_empty_buffer();
 // Releases memory of the buffer.
 void sxg_buffer_release(sxg_buffer_t* target);
 
+// Resizes a buffer to have desired margin. Returns true on success.
+// Does not modify the .size member.
+bool sxg_ensure_buffer_free_capacity(size_t desired_margin,
+                                     sxg_buffer_t* target);
+
 // Resizes a buffer with specified length, contents are not initialized.
 // Returns true on success.
 bool sxg_buffer_resize(size_t size, sxg_buffer_t* target);
@@ -72,6 +77,10 @@ bool sxg_write_bytes(const uint8_t* bytes, size_t size, sxg_buffer_t* target);
 
 // Appends the content of `follower` to the buffer. Returns true on success.
 bool sxg_write_buffer(const sxg_buffer_t* follower, sxg_buffer_t* target);
+
+// Appends an integer in big-endian format with nbytes. nbytes must be in the
+// range from 1 to 8. Returns true on success.
+bool sxg_write_int(uint64_t num, int nbytes, sxg_buffer_t* target);
 
 // Copies the content of the buffer to another buffer. `dst` will be expanded as
 // needed and overwritten with the copied content. Returns true on success.

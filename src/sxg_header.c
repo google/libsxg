@@ -20,11 +20,10 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <openssl/crypto.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "libsxg/internal/sxg_buffer.h"
-#include "libsxg/internal/sxg_cbor.h"
+#include "libsxg/sxg_cbor.h"
 
 sxg_header_t sxg_empty_header() {
   const sxg_header_t structure = {NULL, 0, 0};

@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 ///////////////////////////////////////////////////////////////////////////////
-#include "libsxg/internal/sxg_cbor.h"
+#include "libsxg/sxg_cbor.h"
 
 #include <string>
 

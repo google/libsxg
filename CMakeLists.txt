@@ -43,7 +43,7 @@ else ()
 endif ()
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11 -fPIC")
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c99 -fPIC")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c11 -fPIC")
 
 set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
 set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
@@ -110,13 +110,19 @@ install (TARGETS gencertchain RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 # Generate man files
 # ##############################################################################
 
+# cmake-format: off
 # This target requires ronn executable in your path.
 add_custom_target (
   man
-  COMMAND ronn -r ${CMAKE_SOURCE_DIR}/docs/gencertchain.md --pipe > ${CMAKE_SOURCE_DIR}/docs/gencertchain.1 &&
-          ronn -r ${CMAKE_SOURCE_DIR}/docs/gensxg.md --pipe > ${CMAKE_SOURCE_DIR}/docs/gensxg.1 &&
-          ronn -r ${CMAKE_SOURCE_DIR}/docs/libsxg.md --pipe > ${CMAKE_SOURCE_DIR}/docs/libsxg.3
-  COMMENT "Generating roff files with ronn ...")
+  COMMAND
+    ronn -r ${CMAKE_SOURCE_DIR}/docs/gencertchain.md --pipe >
+        ${CMAKE_SOURCE_DIR}/docs/gencertchain.1 &&
+    ronn -r ${CMAKE_SOURCE_DIR}/docs/gensxg.md --pipe >
+        ${CMAKE_SOURCE_DIR}/docs/gensxg.1 &&
+    ronn -r ${CMAKE_SOURCE_DIR}/docs/libsxg.md --pipe >
+        ${CMAKE_SOURCE_DIR}/docs/libsxg.3
+    COMMENT "Generating roff files with ronn ...")
+# cmake-format: on
 
 # ##############################################################################
 # Linter
@@ -136,11 +142,13 @@ add_custom_target (
     clang-format -style=file -i
   COMMENT "Formating with clang-format ...")
 
-# This target requires [markdownlint](https://github.com/igorshubovych/markdownlint-cli) executable in your path.
+# This target requires [markdownlint](https://github.com/igorshubovych
+# /markdownlint-cli) executable in your path.
 add_custom_target (
   man_format
   COMMAND
-    find ${CMAKE_SOURCE_DIR}/docs/ -name '*.md' | xargs markdownlint -c ${CMAKE_SOURCE_DIR}/.markdownlint
+    find ${CMAKE_SOURCE_DIR}/docs/ -name '*.md' | xargs markdownlint -c
+    ${CMAKE_SOURCE_DIR}/.markdownlint
   COMMENT "Formating with markdownlint ...")
 
 # ##############################################################################

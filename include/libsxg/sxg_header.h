@@ -65,6 +65,9 @@ bool sxg_header_copy(const sxg_header_t* src, sxg_header_t* dst);
 // Appends all elements of `src` into `target`.
 bool sxg_header_merge(const sxg_header_t* src, sxg_header_t* target);
 
+// Generates data for SXG's signedHeader. Returns true on success.
+bool sxg_header_serialize_cbor(const sxg_header_t* from, sxg_buffer_t* dst);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
