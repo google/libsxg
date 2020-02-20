@@ -75,7 +75,7 @@ bool sxg_sig_generate_sig(const char* fallback_url, const uint8_t* header,
 size_t sxg_write_signature_size(const sxg_sig_t* sig);
 
 // Writes serialized contents of signature with Structured Header format.
-// Returns actual wrote size.
+// Returns actual written size.
 size_t sxg_write_signature(const sxg_sig_t* sig, uint8_t* dst);
 
 #ifdef __cplusplus
