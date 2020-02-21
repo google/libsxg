@@ -61,11 +61,16 @@ add_library (
   src/sxg_cert_chain.c
   src/sxg_codec.c
   src/sxg_encoded_response.c
+  src/sxg_encoded_response.c
+  src/sxg_encoded_response.cc
   src/sxg_generate.c
+  src/sxg_generate.cc
   src/sxg_header.c
+  src/sxg_header.cc
   src/sxg_raw_response.c
   src/sxg_sig.c
-  src/sxg_signer_list.c)
+  src/sxg_signer_list.c
+  src/sxg_signer_list.cc)
 
 target_include_directories (sxg PRIVATE ${PROJECT_SOURCE_DIR}/include
                                         ${OPENSSL_INCLUDE_DIR})
@@ -113,9 +118,13 @@ install (TARGETS gencertchain RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 # This target requires ronn executable in your path.
 add_custom_target (
   man
-  COMMAND ronn -r ${CMAKE_SOURCE_DIR}/docs/gencertchain.md --pipe > ${CMAKE_SOURCE_DIR}/docs/gencertchain.1 &&
-          ronn -r ${CMAKE_SOURCE_DIR}/docs/gensxg.md --pipe > ${CMAKE_SOURCE_DIR}/docs/gensxg.1 &&
-          ronn -r ${CMAKE_SOURCE_DIR}/docs/libsxg.md --pipe > ${CMAKE_SOURCE_DIR}/docs/libsxg.3
+  COMMAND
+    ronn -r ${CMAKE_SOURCE_DIR}/docs/gencertchain.md --pipe >
+    ${CMAKE_SOURCE_DIR}/docs/gencertchain.1 && ronn -r
+    ${CMAKE_SOURCE_DIR}/docs/gensxg.md --pipe >
+    ${CMAKE_SOURCE_DIR}/docs/gensxg.1 && ronn -r
+    ${CMAKE_SOURCE_DIR}/docs/libsxg.md --pipe >
+    ${CMAKE_SOURCE_DIR}/docs/libsxg.3
   COMMENT "Generating roff files with ronn ...")
 
 # ##############################################################################
@@ -136,11 +145,13 @@ add_custom_target (
     clang-format -style=file -i
   COMMENT "Formating with clang-format ...")
 
-# This target requires [markdownlint](https://github.com/igorshubovych/markdownlint-cli) executable in your path.
+# This target requires [markdownlint](https://github.com/igorshubovych
+# /markdownlint-cli) executable in your path.
 add_custom_target (
   man_format
   COMMAND
-    find ${CMAKE_SOURCE_DIR}/docs/ -name '*.md' | xargs markdownlint -c ${CMAKE_SOURCE_DIR}/.markdownlint
+    find ${CMAKE_SOURCE_DIR}/docs/ -name '*.md' | xargs markdownlint -c
+    ${CMAKE_SOURCE_DIR}/.markdownlint
   COMMENT "Formating with markdownlint ...")
 
 # ##############################################################################
@@ -183,37 +194,63 @@ if (RUN_TEST)
 endif ()
 
 set (SANITIZER_OPTIONS "-fsanitize=address,leak,undefined")
-macro (add_test_macro target_name test_name with_sanitizer)
-  add_executable (${target_name} tests/${test_name}.cc)
-  add_test (NAME ${target_name} COMMAND ${target_name})
-  add_dependencies (${target_name} test_util)
-  target_link_libraries (${target_name} PRIVATE test_util)
-  if (with_sanitizer)
-    target_compile_options (${target_name} PRIVATE ${SANITIZER_OPTIONS})
-    target_link_options (${target_name} PRIVATE ${SANITIZER_OPTIONS})
+macro (add_test_macro target_name test_name with_sanitizer cpp_mode)
+  if (cpp_mode)
+    add_executable ("${target_name}_cc" tests/cpp/${test_name}.cc)
+    add_test (NAME "${target_name}_cc" COMMAND "${target_name}_cc")
+    add_dependencies ("${target_name}_cc" test_util)
+    target_link_libraries ("${target_name}_cc" PRIVATE test_util)
+    if (with_sanitizer)
+      target_compile_options ("${target_name}_cc" PRIVATE ${SANITIZER_OPTIONS})
+      target_link_options ("${target_name}_cc" PRIVATE ${SANITIZER_OPTIONS})
+    endif ()
+  else ()
+    add_executable (${target_name} tests/${test_name}.cc)
+    add_test (NAME "${target_name}" COMMAND ${target_name})
+    add_dependencies (${target_name} test_util)
+    target_link_libraries (${target_name} PRIVATE test_util)
+    if (with_sanitizer)
+      target_compile_options (${target_name} PRIVATE ${SANITIZER_OPTIONS})
+      target_link_options (${target_name} PRIVATE ${SANITIZER_OPTIONS})
+    endif ()
   endif ()
+
 endmacro ()
 
-function (configure_test test_name)
+function (configure_test test_name cpp_mode)
   message ("-- Configuring test: ${test_name}")
-  add_test_macro (${test_name} ${test_name} FALSE)
+  add_test_macro (${test_name} ${test_name} FALSE ${cpp_mode})
   message ("-- Configuring test: ${test_name}_sanitizer")
-  add_test_macro ("${test_name}_sanitizer" ${test_name} TRUE)
+  add_test_macro ("${test_name}_sanitizer" ${test_name} TRUE ${cpp_mode})
 endfunction ()
 
 if (RUN_TEST)
-  configure_test (nfail_malloc_test)
-  configure_test (sxg_buffer_test)
-  configure_test (sxg_cbor_test)
-  configure_test (sxg_cert_chain_test)
-  configure_test (sxg_codec_test)
-  configure_test (sxg_encoded_response_test)
-  configure_test (sxg_generate_test)
-  configure_test (sxg_header_test)
-  configure_test (sxg_sig_test)
-  configure_test (sxg_signer_list_test)
-  configure_test (toplevel_test)
+  configure_test (sxg_buffer_test FALSE)
+  configure_test (sxg_codec_test FALSE)
+  configure_test (sxg_header_test FALSE)
+  configure_test (sxg_sig_test FALSE)
+  configure_test (sxg_encoded_response_test FALSE)
+  configure_test (sxg_signer_list_test FALSE)
+  configure_test (toplevel_test FALSE)
+  configure_test (sxg_generate_test FALSE)
+  configure_test (nfail_malloc_test FALSE)
+
+  configure_test (sxg_encoded_response_test true)
+  configure_test (sxg_generate_test true)
+  configure_test (sxg_header_test true)
+  configure_test (sxg_signer_list_test true)
+
 endif ()
+
+function (configure_test test_name cpp_mode)
+  if (cpp_mode)
+    message ("-- Configuring C++ test: ${test_name}")
+  else ()
+    message ("-- Configuring test: ${test_name}")
+  endif ()
+  add_plain_test (${test_name} ${cpp_mode})
+  add_sanitizer_test (${test_name} ${cpp_mode})
+endfunction ()
 
 # ##############################################################################
 # Fuzzing

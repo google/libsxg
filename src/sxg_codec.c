@@ -21,25 +21,21 @@
 #include <openssl/x509.h>
 #include <string.h>
 
-static bool sxg_calc_sha256_bytes(const sxg_buffer_t* src,
-                                  uint8_t out[SHA256_DIGEST_LENGTH]) {
-  return SHA256(src->data, src->size, out) != NULL;
+#include "libsxg/internal/sxg_buffer.h"
+
+bool sxg_sha256(const uint8_t* src, size_t length, uint8_t* dst) {
+  return SHA256(src, length, dst) != NULL;
 }
 
-bool sxg_calc_sha256(const sxg_buffer_t* src, sxg_buffer_t* dst) {
-  sxg_buffer_release(dst);
-  return sxg_buffer_resize(SHA256_DIGEST_LENGTH, dst) &&
-         sxg_calc_sha256_bytes(src, dst->data);
+bool sxg_sha384(const uint8_t* src, size_t length, uint8_t* dst) {
+  return SHA384(src, length, dst) != NULL;
 }
 
-bool sxg_calc_sha384(const sxg_buffer_t* src, sxg_buffer_t* dst) {
-  sxg_buffer_release(dst);
-  return sxg_buffer_resize(SHA384_DIGEST_LENGTH, dst) &&
-         SHA384(src->data, src->size, dst->data);
+size_t sxg_base64encode_size(const size_t length) {
+  return 4 * ((length + 2) / 3);
 }
 
-bool sxg_base64encode_bytes(const uint8_t* src, size_t length,
-                            sxg_buffer_t* dst) {
+bool sxg_base64encode(const uint8_t* src, size_t length, uint8_t* dst) {
   BUF_MEM* bptr;
   BIO* base64 = BIO_new(BIO_f_base64());
   if (base64 == NULL) {
@@ -54,23 +50,16 @@ bool sxg_base64encode_bytes(const uint8_t* src, size_t length,
   BIO_set_flags(base64, BIO_FLAGS_BASE64_NO_NL);  // We don't need following \n.
 
   bool success = BIO_write(base64, src, length) > 0 && BIO_flush(base64) > 0 &&
-                 BIO_get_mem_ptr(base64, &bptr) > 0 &&
-                 sxg_write_bytes((const uint8_t*)bptr->data, bptr->length, dst);
+                 BIO_get_mem_ptr(base64, &bptr) > 0;
+  if (success) {
+    memcpy(dst, (const uint8_t*)bptr->data, bptr->length);
+  }
+
   BIO_free_all(base64);
   return success;
 }
 
-bool sxg_base64encode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
-  return sxg_base64encode_bytes(src->data, src->size, dst);
-}
-
-static void encode_uint64_to_buffer(uint64_t num, uint8_t buf[8]) {
-  for (int i = 0; i < 8; ++i) {
-    buf[i] = (num >> 8 * (7 - i)) & 0xffu;
-  }
-}
-
-static size_t mi_sha256_encoded_size(size_t length, uint64_t record_size) {
+size_t sxg_mi_sha256_size(size_t length, uint64_t record_size) {
   // See 2.1 of https://tools.ietf.org/html/draft-thomson-http-mice-03
   // Note:  This content encoding increases the size of a message by 8 plus
   // SHA256_DIGEST_LENGTH octets times the length of the message divided by the
@@ -85,7 +74,7 @@ static size_t mi_sha256_encoded_size(size_t length, uint64_t record_size) {
   }
 }
 
-static size_t mi_sha256_remainder_size(size_t size, uint64_t record_size) {
+size_t sxg_mi_sha256_remainder_size(size_t size, uint64_t record_size) {
   // If contents size == 0 chunk length must be 0.
   if (size == 0) {
     return 0;
@@ -98,8 +87,8 @@ static size_t mi_sha256_remainder_size(size_t size, uint64_t record_size) {
   }
 }
 
-bool sxg_encode_mi_sha256(const sxg_buffer_t* src, uint64_t record_size,
-                          sxg_buffer_t* encoded,
+bool sxg_encode_mi_sha256(const uint8_t* src, size_t size, uint64_t record_size,
+                          uint8_t* encoded,
                           uint8_t proof[SHA256_DIGEST_LENGTH]) {
   // See 2 of https://tools.ietf.org/html/draft-thomson-http-mice-03
   // proof(r[i]) = SHA-256(r[i] || proof(r[i+1]) || 0x1)
@@ -111,117 +100,111 @@ bool sxg_encode_mi_sha256(const sxg_buffer_t* src, uint64_t record_size,
     return false;  // Avoid devision by zero.
   }
 
-  const size_t encoded_size = mi_sha256_encoded_size(src->size, record_size);
-  if (!sxg_buffer_resize(encoded_size, encoded)) {
-    return false;
-  }
-  encoded->size = encoded_size;
-
   // Construct encoded buffer from tail to head of source buffer.
-  const uint8_t* input_p = src->data + src->size;
-  uint8_t* output_p = encoded->data + encoded_size;
-  const size_t remainder = mi_sha256_remainder_size(src->size, record_size);
+  const uint8_t* input_p = src + size;
+  uint8_t* output_p = encoded + sxg_mi_sha256_size(size, record_size);
+  const size_t remainder = sxg_mi_sha256_remainder_size(size, record_size);
 
-  sxg_buffer_t workspace = sxg_empty_buffer();
-  if (!sxg_buffer_resize(remainder + 1, &workspace)) {
-    sxg_buffer_release(encoded);
+  uint8_t* workspace = OPENSSL_malloc(remainder + 1);
+  if (workspace == NULL) {
     return false;
   }
 
   // The integrity proof for the final record is the hash of the record
   // with a single octet with a value 0x0 appended.
-  workspace.data[remainder] = 0x0;
+  workspace[remainder] = 0x0;
   if (remainder > 0) {
     input_p -= remainder;
     output_p -= remainder;
-    memcpy(workspace.data, input_p, remainder);
+    memcpy(workspace, input_p, remainder);
     memcpy(output_p, input_p, remainder);
   }
 
   // Remainder buffer length can be devided by record_size.
-  assert((input_p - src->data) % record_size == 0);
+  assert((input_p - src) % record_size == 0);
 
-  if (!sxg_calc_sha256_bytes(&workspace, proof)) {
+  if (!sxg_sha256(workspace, remainder + 1, proof)) {
     goto failure;
   }
 
-  if (input_p == src->data) {
+  if (input_p == src) {
     // When one chunk contains whole buffer.
-    sxg_buffer_release(&workspace);
-    if (src->size != 0) {
-      encode_uint64_to_buffer(record_size, encoded->data);
+    OPENSSL_free(workspace);
+    if (size != 0) {
+      sxg_serialize_int(record_size, 8, encoded);
     }
     return true;
   }
   output_p -= SHA256_DIGEST_LENGTH;
   memcpy(output_p, proof, SHA256_DIGEST_LENGTH);
 
-  if (!sxg_buffer_resize(record_size + SHA256_DIGEST_LENGTH + 1, &workspace)) {
+  const size_t workspace_size = record_size + SHA256_DIGEST_LENGTH + 1;
+  workspace = OPENSSL_realloc(workspace, workspace_size);
+  if (workspace == NULL) {
     goto failure;
   }
 
-  memcpy(workspace.data + record_size, proof, SHA256_DIGEST_LENGTH);
+  memcpy(workspace + record_size, proof, SHA256_DIGEST_LENGTH);
   //  The integrity proof for all records other than the last is the hash of the
   //  concatenation of the record, the integrity proof of all subsequent
   //  records, and a single octet with a value of 0x1.
-  workspace.data[SHA256_DIGEST_LENGTH + record_size] = 0x01;
+  workspace[SHA256_DIGEST_LENGTH + record_size] = 0x01;
 
   for (;;) {
     // Copy payload.
     output_p -= record_size;
     input_p -= record_size;
     memcpy(output_p, input_p, record_size);
-    memcpy(workspace.data, input_p, record_size);
+    memcpy(workspace, input_p, record_size);
 
     // Calculate proof.
-    if (!sxg_calc_sha256_bytes(&workspace, proof)) {
+    if (!sxg_sha256(workspace, workspace_size, proof)) {
       goto failure;
     }
-    if (input_p == src->data) {  // Reaches head of buffer
+    if (input_p == src) {  // Reaches head of buffer
       break;
     }
 
     // Copy proof.
     output_p -= SHA256_DIGEST_LENGTH;
     memcpy(output_p, proof, SHA256_DIGEST_LENGTH);
-    memcpy(workspace.data + record_size, proof,
+    memcpy(workspace + record_size, proof,
            SHA256_DIGEST_LENGTH);  // Used for next proof.
   }
-  sxg_buffer_release(&workspace);
+  OPENSSL_free(workspace);
 
   // Capacity for storing RecordSize must be remaining.
-  assert(encoded->data + sizeof(record_size) == output_p);
+  assert(encoded + sizeof(record_size) == output_p);
 
   // Store RecordSize head 8 bytes of encoded data.
-  encode_uint64_to_buffer(record_size, encoded->data);
+  sxg_serialize_int(record_size, 8, encoded);
   return true;
 
 failure:
-  sxg_buffer_release(&workspace);
-  sxg_buffer_release(encoded);
+  OPENSSL_free(workspace);
   return false;
 }
 
-bool sxg_calculate_cert_sha256(X509* cert, sxg_buffer_t* dst) {
-  sxg_buffer_t cert_payload = sxg_empty_buffer();
+bool sxg_calculate_cert_sha256(X509* cert, uint8_t* dst) {
   const size_t length = i2d_X509(cert, NULL);
-  if (!sxg_buffer_resize(length, &cert_payload)) {
+  uint8_t* cert_payload = OPENSSL_malloc(length);
+  if (cert_payload == NULL) {
     return false;
   }
 
   // https://www.openssl.org/docs/man1.0.2/man3/d2i_X509_fp.html
   // WARNINGS: The use of temporary variable is mandatory.
-  unsigned char* tmp_buf = cert_payload.data;
+  uint8_t* tmp_buf = cert_payload;
   const int encoded_bytes = i2d_X509(cert, &tmp_buf);
   if (encoded_bytes < 0) {
-    sxg_buffer_release(&cert_payload);
+    OPENSSL_free(cert_payload);
     return false;
   }
-  bool success = sxg_calc_sha256(&cert_payload, dst);
+  bool success = sxg_sha256(cert_payload, length, dst);
 
   assert((size_t)encoded_bytes == length);
 
-  sxg_buffer_release(&cert_payload);
+  OPENSSL_free(cert_payload);
   return success;
 }
 
@@ -243,22 +226,37 @@ static const EVP_MD* select_digest_function(EVP_PKEY* key) {
   }
 }
 
-bool sxg_evp_sign(EVP_PKEY* private_key, const sxg_buffer_t* src,
-                  sxg_buffer_t* dst) {
-  EVP_MD_CTX* const ctx = EVP_MD_CTX_new();
+size_t sxg_evp_sign_size(EVP_PKEY* private_key, const uint8_t* src,
+                         size_t length) {
+  EVP_MD_CTX* const ctx = EVP_MD_CTX_create();
   const EVP_MD* digest_func = select_digest_function(private_key);
-
-  // EVP_PKEY_sign_init() and EVP_PKEY_sign() return 1 for success and 0 or a
-  // negative value for failure. In particular a return value of -2 indicates
-  // the operation is not supported by the public key algorithm.
   size_t sig_size = 0;
   bool success =
       ctx != NULL &&
       (EVP_DigestSignInit(ctx, NULL, digest_func, NULL, private_key) == 1) &&
-      (EVP_DigestSign(ctx, NULL, &sig_size, src->data, src->size) == 1) &&
-      sxg_buffer_resize(sig_size, dst) &&
-      (EVP_DigestSign(ctx, dst->data, &dst->size, src->data, src->size) == 1);
+      (EVP_DigestSign(ctx, NULL, &sig_size, src, length) == 1);
+  EVP_MD_CTX_destroy(ctx);
+  if (!success) {
+    return 0;
+  }
+  return sig_size;
+}
 
+size_t sxg_evp_sign(EVP_PKEY* private_key, const uint8_t* src, size_t length,
+                    uint8_t* dst) {
+  EVP_MD_CTX* const ctx = EVP_MD_CTX_create();
+  const EVP_MD* digest_func = select_digest_function(private_key);
+  // EVP_PKEY_sign_init() and EVP_PKEY_sign() return 1 for success and 0 or a
+  // negative value for failure. In particular a return value of -2 indicates
+  // the operation is not supported by the public key algorithm.
+  size_t sig_size;
+  bool success =
+      ctx != NULL &&
+      (EVP_DigestSignInit(ctx, NULL, digest_func, NULL, private_key) == 1) &&
+      (EVP_DigestSign(ctx, dst, &sig_size, src, length) == 1);
   EVP_MD_CTX_free(ctx);
-  return success;
+  if (!success) {
+    return 0;
+  }
+  return sig_size;
 }
