@@ -1,0 +1,9 @@
+build
+clean
+clobber
+compile
+compile:sxg
+install
+install:local
+release[remote]
+test
