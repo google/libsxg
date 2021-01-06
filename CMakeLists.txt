@@ -27,6 +27,18 @@ option (SXG_BUILD_SHARED "Build shared library" ON)
 option (SXG_BUILD_STATIC "Build static libirary" OFF)
 option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON)
 
+if (NOT SXG_BUILD_SHARED AND NOT SXG_BUILD_STATIC)
+  message(
+    FATAL_ERROR
+    "One of SXG_BUILD_SHARED or SXG_BUILD_STATIC is required" )
+endif ()
+
+if (NOT SXG_BUILD_SHARED AND SXG_BUILD_EXECUTABLES)
+  message(
+    FATAL_ERROR
+    "Shared library required for gensxg/gencertchain executables" )
+endif ()
+
 option (
   RUN_TEST
   "If false, build libsxg without building tests.\
@@ -209,12 +221,22 @@ if (RUN_TEST)
                "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}")
   set (GTEST_INCLUDE
        "${PROJECT_BINARY_DIR}/third_party/gtest/googletest/include")
-  add_library (test_util SHARED tests/test_util.cc)
+  if (SXG_BUILD_SHARED)
+    add_library (test_util SHARED tests/test_util.cc)
+  else ()
+    add_library (test_util STATIC tests/test_util.cc)
+  endif ()
   target_include_directories (test_util PUBLIC ${PROJECT_SOURCE_DIR}/include
                                                ${GTEST_INCLUDE})
-  add_dependencies (test_util gtest libgtest libgtest_main sxg)
-  target_link_libraries (test_util INTERFACE libgtest libgtest_main pthread sxg
-                                             ${OPENSSL_LIBRARIES})
+  if (SXG_BUILD_SHARED)
+    add_dependencies (test_util gtest libgtest libgtest_main sxg)
+    target_link_libraries (test_util INTERFACE libgtest libgtest_main pthread sxg
+                                              ${OPENSSL_LIBRARIES})
+  else ()
+    add_dependencies (test_util gtest libgtest libgtest_main sxg_static)
+    target_link_libraries (test_util INTERFACE libgtest libgtest_main pthread sxg_static
+                                              ${OPENSSL_LIBRARIES})
+  endif ()
 endif ()
 
 set (SANITIZER_OPTIONS "-fsanitize=address,leak,undefined")
