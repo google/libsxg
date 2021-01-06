@@ -90,16 +90,20 @@ set (SXG_SOURCES
   src/sxg_sig.c
   src/sxg_signer_list.c)
 
-if (SXG_WITHOUT_CERT_CHAIN)
-  add_compile_definitions(LIBSXG_WITHOUT_CERT_CHAIN)
-else ()
+if (NOT SXG_WITHOUT_CERT_CHAIN)
   list (APPEND SXG_SOURCES src/sxg_cert_chain.c)
 endif ()
+
+configure_file(
+  "include/libsxg.h.in"
+  "include/libsxg.h"
+)
 
 if (SXG_BUILD_SHARED)
   add_library (sxg SHARED ${SXG_SOURCES})
 
-  target_include_directories (sxg PRIVATE ${PROJECT_SOURCE_DIR}/include
+  target_include_directories (sxg PRIVATE ${PROJECT_BINARY_DIR}/include
+                                          ${PROJECT_SOURCE_DIR}/include
                                           ${OPENSSL_INCLUDE_DIR})
 
   target_link_libraries (sxg PRIVATE ${OPENSSL_LIBRARIES})
@@ -109,7 +113,8 @@ if (SXG_BUILD_STATIC)
   add_library (sxg_static STATIC ${SXG_SOURCES})
   set_target_properties(sxg_static PROPERTIES OUTPUT_NAME sxg)
 
-  target_include_directories (sxg_static PRIVATE ${PROJECT_SOURCE_DIR}/include
+  target_include_directories (sxg_static PRIVATE ${PROJECT_BINARY_DIR}/include
+                                                 ${PROJECT_SOURCE_DIR}/include
                                                  ${OPENSSL_INCLUDE_DIR})
 
   target_link_libraries (sxg_static PRIVATE ${OPENSSL_LIBRARIES})
@@ -158,9 +163,10 @@ endif ()
 
 install (
   DIRECTORY ${CMAKE_SOURCE_DIR}/include/ PUBLIC_HEADER
+  DIRECTORY ${CMAKE_BINARY_DIR}/include/ PUBLIC_HEADER
   DESTINATION ${CMAKE_INSTALL_PREFIX}/include
   FILES_MATCHING
-  PATTERN "*.h*")
+  PATTERN "*.h")
 
 if (SXG_BUILD_EXECUTABLES)
   install (TARGETS gensxg RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
