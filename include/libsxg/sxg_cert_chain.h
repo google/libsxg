@@ -17,7 +17,6 @@
 #ifndef LIBSXG_SXG_CERT_CHAIN_H_
 #define LIBSXG_SXG_CERT_CHAIN_H_
 
-#include <openssl/ct.h>
 #include <openssl/ocsp.h>
 #include <openssl/x509.h>
 #include <stdbool.h>
