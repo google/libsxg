@@ -38,26 +38,18 @@ bool sxg_calc_sha384(const sxg_buffer_t* src, sxg_buffer_t* dst) {
          SHA384(src->data, src->size, dst->data);
 }
 
+#ifdef OPENSSL_IS_BORINGSSL
+#define EVP_ENCODE_BLOCK_T size_t
+#else
+#define EVP_ENCODE_BLOCK_T int
+#endif
+
 bool sxg_base64encode_bytes(const uint8_t* src, size_t length,
                             sxg_buffer_t* dst) {
-  BUF_MEM* bptr;
-  BIO* base64 = BIO_new(BIO_f_base64());
-  if (base64 == NULL) {
-    return false;
-  }
-  BIO* bmem = BIO_new(BIO_s_mem());
-  if (bmem == NULL) {
-    BIO_free(base64);
-    return false;
-  }
-  base64 = BIO_push(base64, bmem);
-  BIO_set_flags(base64, BIO_FLAGS_BASE64_NO_NL);  // We don't need following \n.
-
-  bool success = BIO_write(base64, src, length) > 0 && BIO_flush(base64) > 0 &&
-                 BIO_get_mem_ptr(base64, &bptr) > 0 &&
-                 sxg_write_bytes((const uint8_t*)bptr->data, bptr->length, dst);
-  BIO_free_all(base64);
-  return success;
+  /* 3-byte blocks to 4-byte */
+  const EVP_ENCODE_BLOCK_T out_length = 4*((length + 2) / 3);
+  return sxg_buffer_resize(out_length, dst) &&
+         EVP_EncodeBlock(dst->data, src, length) == out_length;
 }
 
 bool sxg_base64encode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
