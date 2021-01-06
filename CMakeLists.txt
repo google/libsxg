@@ -25,20 +25,27 @@ set (LIBSXG_SOVERSION "${CMAKE_PROJECT_VERSION_MAJOR}")
 
 option (SXG_BUILD_SHARED "Build shared library" ON)
 option (SXG_BUILD_STATIC "Build static libirary" OFF)
-include (CMakeDependentOption)
-cmake_dependent_option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON
-                        SXG_BUILD_SHARED OFF)
+option (SXG_WITHOUT_CERT_CHAIN OFF)
+if (SXG_BUILD_SHARED AND NOT SXG_WITHOUT_CERT_CHAIN)
+  option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON)
+endif() 
 
-if (NOT SXG_BUILD_SHARED AND NOT SXG_BUILD_STATIC)
+if (SXG_WITHOUT_CERT_CHAIN AND SXG_BUILD_EXECUTABLES)
   message(
     FATAL_ERROR
-    "One of SXG_BUILD_SHARED or SXG_BUILD_STATIC is required" )
+    "Cert chain library required for gensxg/gencertchain executables" )
 endif ()
 
 if (NOT SXG_BUILD_SHARED AND SXG_BUILD_EXECUTABLES)
   message(
     FATAL_ERROR
     "Shared library required for gensxg/gencertchain executables" )
+endif ()
+
+if (NOT SXG_BUILD_SHARED AND NOT SXG_BUILD_STATIC)
+  message(
+    FATAL_ERROR
+    "One of SXG_BUILD_SHARED or SXG_BUILD_STATIC is required" )
 endif ()
 
 option (
@@ -75,7 +82,6 @@ set (SXG_SOURCES
   src/sxg_buffer.c
   src/sxg_buffer_debug.c
   src/sxg_cbor.c
-  src/sxg_cert_chain.c
   src/sxg_codec.c
   src/sxg_encoded_response.c
   src/sxg_generate.c
@@ -83,6 +89,12 @@ set (SXG_SOURCES
   src/sxg_raw_response.c
   src/sxg_sig.c
   src/sxg_signer_list.c)
+
+if (SXG_WITHOUT_CERT_CHAIN)
+  add_compile_definitions(LIBSXG_WITHOUT_CERT_CHAIN)
+else ()
+  list (APPEND SXG_SOURCES src/sxg_cert_chain.c)
+endif ()
 
 if (SXG_BUILD_SHARED)
   add_library (sxg SHARED ${SXG_SOURCES})
@@ -264,7 +276,9 @@ if (RUN_TEST)
   configure_test (nfail_malloc_test)
   configure_test (sxg_buffer_test)
   configure_test (sxg_cbor_test)
-  configure_test (sxg_cert_chain_test)
+  if (NOT SXG_WITHOUT_CERT_CHAIN)
+    configure_test (sxg_cert_chain_test)
+  endif ()
   configure_test (sxg_codec_test)
   configure_test (sxg_encoded_response_test)
   configure_test (sxg_generate_test)

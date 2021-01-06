@@ -18,7 +18,9 @@
 #define LIBSXG_H_
 
 #include "libsxg/sxg_buffer.h"
+#ifndef LIBSXG_WITHOUT_CERT_CHAIN
 #include "libsxg/sxg_cert_chain.h"
+#endif
 #include "libsxg/sxg_encoded_response.h"
 #include "libsxg/sxg_generate.h"
 #include "libsxg/sxg_header.h"
