@@ -25,12 +25,12 @@ set (LIBSXG_SOVERSION "${CMAKE_PROJECT_VERSION_MAJOR}")
 
 option (SXG_BUILD_SHARED "Build shared library" ON)
 option (SXG_BUILD_STATIC "Build static libirary" OFF)
-option (SXG_WITHOUT_CERT_CHAIN OFF)
-if (SXG_BUILD_SHARED AND NOT SXG_WITHOUT_CERT_CHAIN)
+option (SXG_WITH_CERT_CHAIN ON)
+if (SXG_BUILD_SHARED AND SXG_WITH_CERT_CHAIN)
   option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON)
 endif() 
 
-if (SXG_WITHOUT_CERT_CHAIN AND SXG_BUILD_EXECUTABLES)
+if (NOT SXG_WITH_CERT_CHAIN AND SXG_BUILD_EXECUTABLES)
   message(
     FATAL_ERROR
     "Cert chain library required for gensxg/gencertchain executables" )
@@ -90,7 +90,7 @@ set (SXG_SOURCES
   src/sxg_sig.c
   src/sxg_signer_list.c)
 
-if (NOT SXG_WITHOUT_CERT_CHAIN)
+if (SXG_WITH_CERT_CHAIN)
   list (APPEND SXG_SOURCES src/sxg_cert_chain.c)
 endif ()
 
@@ -282,7 +282,7 @@ if (RUN_TEST)
   configure_test (nfail_malloc_test)
   configure_test (sxg_buffer_test)
   configure_test (sxg_cbor_test)
-  if (NOT SXG_WITHOUT_CERT_CHAIN)
+  if (SXG_WITH_CERT_CHAIN)
     configure_test (sxg_cert_chain_test)
   endif ()
   configure_test (sxg_codec_test)

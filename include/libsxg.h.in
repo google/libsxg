@@ -18,8 +18,8 @@
 #define LIBSXG_H_
 
 #include "libsxg/sxg_buffer.h"
-#cmakedefine SXG_WITHOUT_CERT_CHAIN
-#ifndef SXG_WITHOUT_CERT_CHAIN
+#cmakedefine SXG_WITH_CERT_CHAIN
+#ifdef SXG_WITH_CERT_CHAIN
 #include "libsxg/sxg_cert_chain.h"
 #endif
 #include "libsxg/sxg_encoded_response.h"
