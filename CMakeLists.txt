@@ -25,7 +25,9 @@ set (LIBSXG_SOVERSION "${CMAKE_PROJECT_VERSION_MAJOR}")
 
 option (SXG_BUILD_SHARED "Build shared library" ON)
 option (SXG_BUILD_STATIC "Build static libirary" OFF)
-option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON)
+include (CMakeDependentOption)
+cmake_dependent_option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON
+                        SXG_BUILD_SHARED OFF)
 
 if (NOT SXG_BUILD_SHARED AND NOT SXG_BUILD_STATIC)
   message(
