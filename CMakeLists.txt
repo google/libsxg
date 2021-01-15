@@ -24,21 +24,28 @@ set (LIBSXG_CORE_VERSION
 set (LIBSXG_SOVERSION "${CMAKE_PROJECT_VERSION_MAJOR}")
 
 option (SXG_BUILD_SHARED "Build shared library" ON)
-option (SXG_BUILD_STATIC "Build static libirary" OFF)
-include (CMakeDependentOption)
-cmake_dependent_option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON
-                        SXG_BUILD_SHARED OFF)
+option (SXG_BUILD_STATIC "Build static library" OFF)
+option (SXG_WITH_CERT_CHAIN ON)
+if (SXG_BUILD_SHARED AND SXG_WITH_CERT_CHAIN)
+  option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON)
+endif() 
 
-if (NOT SXG_BUILD_SHARED AND NOT SXG_BUILD_STATIC)
+if (NOT SXG_WITH_CERT_CHAIN AND SXG_BUILD_EXECUTABLES)
   message(
     FATAL_ERROR
-    "One of SXG_BUILD_SHARED or SXG_BUILD_STATIC is required" )
+    "Cert chain library required for gensxg/gencertchain executables" )
 endif ()
 
 if (NOT SXG_BUILD_SHARED AND SXG_BUILD_EXECUTABLES)
   message(
     FATAL_ERROR
     "Shared library required for gensxg/gencertchain executables" )
+endif ()
+
+if (NOT SXG_BUILD_SHARED AND NOT SXG_BUILD_STATIC)
+  message(
+    FATAL_ERROR
+    "One of SXG_BUILD_SHARED or SXG_BUILD_STATIC is required" )
 endif ()
 
 option (
@@ -75,7 +82,6 @@ set (SXG_SOURCES
   src/sxg_buffer.c
   src/sxg_buffer_debug.c
   src/sxg_cbor.c
-  src/sxg_cert_chain.c
   src/sxg_codec.c
   src/sxg_encoded_response.c
   src/sxg_generate.c
@@ -84,10 +90,20 @@ set (SXG_SOURCES
   src/sxg_sig.c
   src/sxg_signer_list.c)
 
+if (SXG_WITH_CERT_CHAIN)
+  list (APPEND SXG_SOURCES src/sxg_cert_chain.c)
+endif ()
+
+configure_file(
+  "include/libsxg.h.in"
+  "include/libsxg.h"
+)
+
 if (SXG_BUILD_SHARED)
   add_library (sxg SHARED ${SXG_SOURCES})
 
-  target_include_directories (sxg PRIVATE ${PROJECT_SOURCE_DIR}/include
+  target_include_directories (sxg PRIVATE ${PROJECT_BINARY_DIR}/include
+                                          ${PROJECT_SOURCE_DIR}/include
                                           ${OPENSSL_INCLUDE_DIR})
 
   target_link_libraries (sxg PRIVATE ${OPENSSL_LIBRARIES})
@@ -97,7 +113,8 @@ if (SXG_BUILD_STATIC)
   add_library (sxg_static STATIC ${SXG_SOURCES})
   set_target_properties(sxg_static PROPERTIES OUTPUT_NAME sxg)
 
-  target_include_directories (sxg_static PRIVATE ${PROJECT_SOURCE_DIR}/include
+  target_include_directories (sxg_static PRIVATE ${PROJECT_BINARY_DIR}/include
+                                                 ${PROJECT_SOURCE_DIR}/include
                                                  ${OPENSSL_INCLUDE_DIR})
 
   target_link_libraries (sxg_static PRIVATE ${OPENSSL_LIBRARIES})
@@ -146,9 +163,10 @@ endif ()
 
 install (
   DIRECTORY ${CMAKE_SOURCE_DIR}/include/ PUBLIC_HEADER
+  DIRECTORY ${CMAKE_BINARY_DIR}/include/ PUBLIC_HEADER
   DESTINATION ${CMAKE_INSTALL_PREFIX}/include
   FILES_MATCHING
-  PATTERN "*.h*")
+  PATTERN "*.h")
 
 if (SXG_BUILD_EXECUTABLES)
   install (TARGETS gensxg RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -228,7 +246,8 @@ if (RUN_TEST)
   else ()
     add_library (test_util STATIC tests/test_util.cc)
   endif ()
-  target_include_directories (test_util PUBLIC ${PROJECT_SOURCE_DIR}/include
+  target_include_directories (test_util PUBLIC ${PROJECT_BINARY_DIR}/include
+                                               ${PROJECT_SOURCE_DIR}/include
                                                ${GTEST_INCLUDE})
   if (SXG_BUILD_SHARED)
     add_dependencies (test_util gtest libgtest libgtest_main sxg)
@@ -264,7 +283,9 @@ if (RUN_TEST)
   configure_test (nfail_malloc_test)
   configure_test (sxg_buffer_test)
   configure_test (sxg_cbor_test)
-  configure_test (sxg_cert_chain_test)
+  if (SXG_WITH_CERT_CHAIN)
+    configure_test (sxg_cert_chain_test)
+  endif ()
   configure_test (sxg_codec_test)
   configure_test (sxg_encoded_response_test)
   configure_test (sxg_generate_test)
