@@ -246,7 +246,8 @@ if (RUN_TEST)
   else ()
     add_library (test_util STATIC tests/test_util.cc)
   endif ()
-  target_include_directories (test_util PUBLIC ${PROJECT_SOURCE_DIR}/include
+  target_include_directories (test_util PUBLIC ${PROJECT_BINARY_DIR}/include
+                                               ${PROJECT_SOURCE_DIR}/include
                                                ${GTEST_INCLUDE})
   if (SXG_BUILD_SHARED)
     add_dependencies (test_util gtest libgtest libgtest_main sxg)
