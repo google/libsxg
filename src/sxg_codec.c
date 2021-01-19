@@ -49,7 +49,7 @@ bool sxg_base64encode_bytes(const uint8_t* src, size_t length,
   const size_t offset = dst->size;
   // 3-byte blocks to 4-byte, rounded up
   const EVP_ENCODE_BLOCK_T out_length = 4 * ((length + 2) / 3);
-  if (out_length < length) return false;
+  if (out_length < 0 || (size_t)out_length < length) return false;
 
   return sxg_buffer_resize(offset + out_length, dst) &&
          EVP_EncodeBlock(dst->data + offset, src, length) == out_length;
