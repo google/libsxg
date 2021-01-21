@@ -33,7 +33,7 @@ bool sxg_write_utf8_cbor_header(uint64_t length, sxg_buffer_t* target);
 
 // Appends the header for a map (visible for testing).
 // Returns true on success.
-bool sxg_write_map_cbor_header(size_t size, sxg_buffer_t* target);
+bool sxg_write_map_cbor_header(uint64_t size, sxg_buffer_t* target);
 
 // Appends the initial bytes for a array.
 // Returns true on success.

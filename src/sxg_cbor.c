@@ -50,7 +50,7 @@ bool sxg_write_utf8_cbor_header(uint64_t length, sxg_buffer_t* target) {
   return write_initial_bytes(0x60, length, target);
 }
 
-bool sxg_write_map_cbor_header(size_t size, sxg_buffer_t* target) {
+bool sxg_write_map_cbor_header(uint64_t size, sxg_buffer_t* target) {
   return write_initial_bytes(0xa0, size, target);
 }
 
