@@ -56,9 +56,7 @@ void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
   const EVP_ENCODE_BLOCK_T estimated_out_length = 3 * (src->size / 4);
 
   // EVP_DecodeBlock doesn't support padding chars, so we use the long form.
-  if (!sxg_buffer_resize(offset + estimated_out_length, dst)) {
-    FAIL();
-  }
+  ASSERT_TRUE(sxg_buffer_resize(offset + estimated_out_length, dst));
   EVP_ENCODE_CTX* ctx = EVP_ENCODE_CTX_new();
   EVP_DecodeInit(ctx);
   EVP_ENCODE_BLOCK_T out_length;
