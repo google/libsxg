@@ -47,6 +47,8 @@ void ExtractSignature(sxg_buffer_t* buffer, sxg_buffer_t* signature) {
   EXPECT_TRUE(sxg_buffer_resize(buffer->size - (end - begin), buffer));
 }
 
+// On failure, this leaks a EVP_ENCODE_CTX. Do not use this in production or in
+// a loop in test.
 void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
   const size_t offset = dst->size;
   // 4-byte blocks to 3-byte, assuming none are padding chars; we'll adjust at
@@ -60,24 +62,18 @@ void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
   EVP_ENCODE_CTX* ctx = EVP_ENCODE_CTX_new();
   EVP_DecodeInit(ctx);
   EVP_ENCODE_BLOCK_T out_length;
-  if (EVP_DecodeUpdate(ctx, dst->data + offset, &out_length, src->data,
-                       src->size) == -1) {
-    EVP_ENCODE_CTX_free(ctx);
-    FAIL();
-  }
+  ASSERT_NE(EVP_DecodeUpdate(ctx, dst->data + offset, &out_length, src->data,
+                             src->size),
+            -1);
   EVP_ENCODE_BLOCK_T out_length2;
-  if (EVP_DecodeFinal(ctx, dst->data + offset + out_length, &out_length2) ==
-      -1) {
-    EVP_ENCODE_CTX_free(ctx);
-    FAIL();
-  }
-  if (!sxg_buffer_resize(offset + out_length + out_length2, dst)) {
-    EVP_ENCODE_CTX_free(ctx);
-    FAIL();
-  }
+  ASSERT_NE(EVP_DecodeFinal(ctx, dst->data + offset + out_length, &out_length2),
+            -1);
+  ASSERT_TRUE(sxg_buffer_resize(offset + out_length + out_length2, dst));
   EVP_ENCODE_CTX_free(ctx);
 }
 
+// On failure, this leaks a EVP_MD_CTX. Do not use this in production or in a
+// loop in test.
 void sxg_evp_verify(EVP_PKEY* private_key, const sxg_buffer_t& message,
                     const sxg_buffer_t& signature) {
   EVP_MD_CTX* const ctx = EVP_MD_CTX_new();
