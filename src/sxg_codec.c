@@ -38,12 +38,6 @@ bool sxg_calc_sha384(const sxg_buffer_t* src, sxg_buffer_t* dst) {
          SHA384(src->data, src->size, dst->data);
 }
 
-#ifdef OPENSSL_IS_BORINGSSL
-#define EVP_ENCODE_BLOCK_T size_t
-#else
-#define EVP_ENCODE_BLOCK_T int
-#endif
-
 bool sxg_base64encode_bytes(const uint8_t* src, size_t length,
                             sxg_buffer_t* dst) {
   const size_t offset = dst->size;

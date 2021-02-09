@@ -18,6 +18,7 @@
 
 #include <cstdio>
 #include <string>
+#include <openssl/x509.h>
 
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_codec.h"
@@ -26,13 +27,69 @@
 
 namespace {
 
-void FillSignature(sxg_buffer_t* buffer) {
+// Splices sig value out of buffer and into signature.
+void ExtractSignature(sxg_buffer_t* buffer, sxg_buffer_t* signature) {
   static const char sigKey[] = "sig=";
-  char* point = strstr((char*)buffer->data, sigKey) + sizeof(sigKey) - 1;
-  EXPECT_EQ('*', *point++);
-  while (*point != '*') {
-    *point++ = '%';
+  uint8_t* begin = (uint8_t*)strstr((char*)buffer->data, sigKey) + sizeof(sigKey);
+  EXPECT_EQ('*', *(begin - 1));
+
+  uint8_t *end = begin;
+  while (*++end != '*');
+  EXPECT_EQ('*', *end);
+
+  EXPECT_TRUE(sxg_buffer_resize(end - begin, signature));
+  memcpy(signature->data, begin, end - begin);
+
+  memmove(begin, end, (buffer->data + buffer->size) - end);
+  EXPECT_TRUE(sxg_buffer_resize(buffer->size - (end - begin), buffer));
+}
+
+void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
+  const size_t offset = dst->size;
+  // 4-byte blocks to 3-byte, assuming none are padding chars; we'll adjust at
+  // the end.
+  const EVP_ENCODE_BLOCK_T estimated_out_length = 3 * (src->size / 4);
+
+  // EVP_DecodeBlock doesn't support padding chars, so we use the long form.
+  if (!sxg_buffer_resize(offset + estimated_out_length, dst)) {
+    FAIL();
   }
+  EVP_ENCODE_CTX* ctx = EVP_ENCODE_CTX_new();
+  EVP_DecodeInit(ctx);
+  EVP_ENCODE_BLOCK_T out_length;
+  if (EVP_DecodeUpdate(ctx, dst->data + offset, &out_length,
+                       src->data, src->size) == -1) {
+    EVP_ENCODE_CTX_free(ctx);
+    FAIL();
+  }
+  EVP_ENCODE_BLOCK_T out_length2;
+  if (EVP_DecodeFinal(ctx, dst->data + offset + out_length, &out_length2)
+          == -1) {
+    EVP_ENCODE_CTX_free(ctx);
+    FAIL();
+  }
+  if (!sxg_buffer_resize(offset + out_length + out_length2, dst)) {
+    EVP_ENCODE_CTX_free(ctx);
+    FAIL();
+  }
+  EVP_ENCODE_CTX_free(ctx);
+}
+
+void sxg_evp_verify(EVP_PKEY* private_key, const sxg_buffer_t& message,
+                    const sxg_buffer_t& signature) {
+  EVP_MD_CTX* const ctx = EVP_MD_CTX_new();
+  const EVP_MD* digest_func = EVP_sha256();
+
+  // EVP_DigestVerify functions return 1 on success; any other value indicates
+  // failure.
+  // https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyInit.html
+  ASSERT_TRUE(ctx != NULL);
+  ASSERT_EQ(EVP_DigestVerifyInit(ctx, NULL, digest_func, NULL, private_key), 1);
+  ASSERT_EQ(EVP_DigestVerify(ctx, signature.data, signature.size,
+                             message.data, message.size),
+            1);
+
+  EVP_MD_CTX_free(ctx);
 }
 
 TEST(SxgSig, ConstructAndRelease) {
@@ -51,9 +108,7 @@ TEST(SxgSig, MakeSignature) {
       "testname;cert-sha256=*WrpTHrnR9I9Cj+cizXTozEZB+BnjQKkRe8kKgme4iLU=*;"
       "cert-url=\"https://cert.test/"
       "cert.cbor\";date=0;expires=0;integrity=\"digest/"
-      "mi-sha256-03\";sig=*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-      "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*;validity-url=\"https://"
-      "cert.test/validity.msg\"");
+      "mi-sha256-03\";sig=**;validity-url=\"https://cert.test/validity.msg\"");
 
   EXPECT_TRUE(sxg_sig_set_name("testname", &sig));
   EXPECT_TRUE(sxg_sig_set_cert_sha256(cert, &sig));
@@ -62,8 +117,36 @@ TEST(SxgSig, MakeSignature) {
   EXPECT_TRUE(sxg_sig_set_validity_url("https://cert.test/validity.msg", &sig));
   EXPECT_TRUE(sxg_sig_generate_sig("https://sxg.test/", &header, pkey, &sig));
   EXPECT_TRUE(sxg_write_signature(&sig, &output));
-  FillSignature(&output);
+
+  sxg_buffer_t signature = sxg_empty_buffer();
+  ExtractSignature(&output, &signature);
   EXPECT_EQ(expected, sxg_test::BufferToString(output));
+
+  // https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#name-signature-validity
+  sxg_buffer_t expected_message = sxg_empty_buffer();
+  sxg_write_bytes((const uint8_t*)
+                  "                                "
+                  "                                "  // 64 bytes
+                  "HTTP Exchange 1 b3\0 "  // preamble, 20 bytes
+                  "\x5a\xba\x53\x1e\xb9\xd1\xf4\x8f\x42\x8f\xe7\x22\xcd\x74\xe8"
+                  "\xcc\x46\x41\xf8\x19\xe3\x40\xa9\x11\x7b\xc9\x0a\x82\x67\xb8"
+                  "\x88\xb5"  // cert-sha256, 32 bytes
+                  "\0\0\0\0\0\0\0\x1ehttps://cert.test/validity.msg"
+                  // validity-url, 38 bytes
+                  "\0\0\0\0\0\0\0\0"  // date, 8 bytes
+                  "\0\0\0\0\0\0\0\0"  // expires, 8 bytes
+                  "\0\0\0\0\0\0\0\x11https://sxg.test/"  // requestUrl, 25 bytes
+                  "\0\0\0\0\0\0\0\x0c"
+                  "dummy_header", // responseHeaders, 20 bytes
+                  64+20+32+38+8+8+25+20, &expected_message);
+
+  {
+    SCOPED_TRACE("signature: " + sxg_test::BufferToString(signature));
+    sxg_buffer_t signature_decoded = sxg_empty_buffer();
+    EXPECT_NO_FATAL_FAILURE(sxg_base64decode(&signature, &signature_decoded));
+    EXPECT_NO_FATAL_FAILURE(
+        sxg_evp_verify(pkey, expected_message, signature_decoded));
+  }
 
   EVP_PKEY_free(pkey);
   X509_free(cert);

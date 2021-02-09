@@ -51,6 +51,12 @@ bool sxg_calculate_cert_sha256(X509* cert, sxg_buffer_t* dst);
 bool sxg_evp_sign(EVP_PKEY* private_key, const sxg_buffer_t* src,
                   sxg_buffer_t* dst);
 
+#ifdef OPENSSL_IS_BORINGSSL
+#define EVP_ENCODE_BLOCK_T size_t
+#else
+#define EVP_ENCODE_BLOCK_T int
+#endif
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
