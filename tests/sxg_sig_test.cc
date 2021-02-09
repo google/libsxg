@@ -16,9 +16,10 @@
 
 #include "libsxg/internal/sxg_sig.h"
 
+#include <openssl/x509.h>
+
 #include <cstdio>
 #include <string>
-#include <openssl/x509.h>
 
 #include "gtest/gtest.h"
 #include "libsxg/internal/sxg_codec.h"
@@ -30,11 +31,13 @@ namespace {
 // Splices sig value out of buffer and into signature.
 void ExtractSignature(sxg_buffer_t* buffer, sxg_buffer_t* signature) {
   static const char sigKey[] = "sig=";
-  uint8_t* begin = (uint8_t*)strstr((char*)buffer->data, sigKey) + sizeof(sigKey);
+  uint8_t* begin =
+      (uint8_t*)strstr((char*)buffer->data, sigKey) + sizeof(sigKey);
   EXPECT_EQ('*', *(begin - 1));
 
-  uint8_t *end = begin;
-  while (*++end != '*');
+  uint8_t* end = begin;
+  while (*++end != '*')
+    ;
   EXPECT_EQ('*', *end);
 
   EXPECT_TRUE(sxg_buffer_resize(end - begin, signature));
@@ -57,14 +60,14 @@ void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
   EVP_ENCODE_CTX* ctx = EVP_ENCODE_CTX_new();
   EVP_DecodeInit(ctx);
   EVP_ENCODE_BLOCK_T out_length;
-  if (EVP_DecodeUpdate(ctx, dst->data + offset, &out_length,
-                       src->data, src->size) == -1) {
+  if (EVP_DecodeUpdate(ctx, dst->data + offset, &out_length, src->data,
+                       src->size) == -1) {
     EVP_ENCODE_CTX_free(ctx);
     FAIL();
   }
   EVP_ENCODE_BLOCK_T out_length2;
-  if (EVP_DecodeFinal(ctx, dst->data + offset + out_length, &out_length2)
-          == -1) {
+  if (EVP_DecodeFinal(ctx, dst->data + offset + out_length, &out_length2) ==
+      -1) {
     EVP_ENCODE_CTX_free(ctx);
     FAIL();
   }
@@ -85,8 +88,8 @@ void sxg_evp_verify(EVP_PKEY* private_key, const sxg_buffer_t& message,
   // https://www.openssl.org/docs/manmaster/man3/EVP_DigestVerifyInit.html
   ASSERT_TRUE(ctx != NULL);
   ASSERT_EQ(EVP_DigestVerifyInit(ctx, NULL, digest_func, NULL, private_key), 1);
-  ASSERT_EQ(EVP_DigestVerify(ctx, signature.data, signature.size,
-                             message.data, message.size),
+  ASSERT_EQ(EVP_DigestVerify(ctx, signature.data, signature.size, message.data,
+                             message.size),
             1);
 
   EVP_MD_CTX_free(ctx);
