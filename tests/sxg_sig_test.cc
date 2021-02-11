@@ -58,10 +58,9 @@ void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
 
 #ifdef OPENSSL_IS_BORINGSSL
   size_t out_length;
-  ASSERT_EQ(
-      EVP_DecodeBase64(dst->data + offset, &out_length, estimated_out_length,
-                       src->data, src->size),
-      1);
+  ASSERT_EQ(EVP_DecodeBase64(dst->data + offset, &out_length,
+                             estimated_out_length, src->data, src->size),
+            1);
   ASSERT_TRUE(sxg_buffer_resize(offset + out_length, dst));
 #else
   // EVP_DecodeBlock doesn't support padding chars, so we use the long form.
