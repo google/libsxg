@@ -64,11 +64,11 @@ void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
   EVP_ENCODE_CTX* ctx = EVP_ENCODE_CTX_new();
 #endif
   EVP_DecodeInit(ctx);
-  EVP_ENCODE_BLOCK_T out_length;
+  int out_length;
   ASSERT_NE(EVP_DecodeUpdate(ctx, dst->data + offset, &out_length, src->data,
                              src->size),
             -1);
-  EVP_ENCODE_BLOCK_T out_length2;
+  int out_length2;
   ASSERT_NE(EVP_DecodeFinal(ctx, dst->data + offset + out_length, &out_length2),
             -1);
   ASSERT_TRUE(sxg_buffer_resize(offset + out_length + out_length2, dst));
