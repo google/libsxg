@@ -17,6 +17,7 @@
 #include "libsxg/internal/sxg_codec.h"
 
 #include <assert.h>
+#include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <openssl/x509.h>
 #include <string.h>
