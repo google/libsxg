@@ -54,15 +54,18 @@ void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
   // 4-byte blocks to 3-byte, assuming none are padding chars; we'll adjust at
   // the end.
   const EVP_ENCODE_BLOCK_T estimated_out_length = 3 * (src->size / 4);
-
-  // EVP_DecodeBlock doesn't support padding chars, so we use the long form.
   ASSERT_TRUE(sxg_buffer_resize(offset + estimated_out_length, dst));
+
 #ifdef OPENSSL_IS_BORINGSSL
-  EVP_ENCODE_CTX context;
-  EVP_ENCODE_CTX* ctx = &context;
+  size_t out_length;
+  ASSERT_EQ(
+      EVP_DecodeBase64(dst->data + offset, &out_length, estimated_out_length,
+                       src->data, src->size),
+      1);
+  ASSERT_TRUE(sxg_buffer_resize(offset + out_length, dst));
 #else
+  // EVP_DecodeBlock doesn't support padding chars, so we use the long form.
   EVP_ENCODE_CTX* ctx = EVP_ENCODE_CTX_new();
-#endif
   EVP_DecodeInit(ctx);
   int out_length;
   ASSERT_NE(EVP_DecodeUpdate(ctx, dst->data + offset, &out_length, src->data,
@@ -72,7 +75,6 @@ void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
   ASSERT_NE(EVP_DecodeFinal(ctx, dst->data + offset + out_length, &out_length2),
             -1);
   ASSERT_TRUE(sxg_buffer_resize(offset + out_length + out_length2, dst));
-#ifndef OPENSSL_IS_BORINGSSL
   EVP_ENCODE_CTX_free(ctx);
 #endif
 }
@@ -102,6 +104,12 @@ TEST(SxgSig, ConstructAndRelease) {
 }
 
 TEST(SxgSig, MakeSignature) {
+#ifdef OPENSSL_IS_BORINGSSL
+  std::cout << "hello from boringssl" << std::endl;
+#else
+  std::cout << "hello from openssl" << std::endl;
+#endif
+
   sxg_sig_t sig = sxg_empty_sig();
   X509* cert = sxg_test::LoadX509Cert("testdata/cert256.pem");
   sxg_buffer_t header = sxg_empty_buffer();
