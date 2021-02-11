@@ -8,6 +8,6 @@ unzip ${BORINGSSL_ZIP}
 pushd boringssl-${BORINGSSL}
 mkdir build
 cd build
-cmake ..
-make -j`nproc`
+cmake -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC .. 
+make -j`nproc` VERBOSE=1
 popd
