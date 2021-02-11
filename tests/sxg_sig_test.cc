@@ -130,19 +130,18 @@ TEST(SxgSig, MakeSignature) {
   // https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#name-signature-validity
   sxg_buffer_t expected_message = sxg_empty_buffer();
   const uint8_t expected_message_buf[] =
-                  "                                "
-                  "                                "
-                  "HTTP Exchange 1 b3\0 "  // preamble
-                  "\x5a\xba\x53\x1e\xb9\xd1\xf4\x8f\x42\x8f\xe7\x22\xcd\x74\xe8"
-                  "\xcc\x46\x41\xf8\x19\xe3\x40\xa9\x11\x7b\xc9\x0a\x82\x67\xb8"
-                  "\x88\xb5"  // cert-sha256
-                  "\0\0\0\0\0\0\0\x1ehttps://cert.test/validity.msg"
-                  // validity-url
-                  "\0\0\0\0\0\0\0\0"  // date
-                  "\0\0\0\0\0\0\0\0"  // expires
-                  "\0\0\0\0\0\0\0\x11https://sxg.test/"  // requestUrl
-                  "\0\0\0\0\0\0\0\x0c"
-                  "dummy_header"; // responseHeaders
+      "                                "
+      "                                "
+      "HTTP Exchange 1 b3\0 "  // preamble
+      "\x5a\xba\x53\x1e\xb9\xd1\xf4\x8f\x42\x8f\xe7\x22\xcd\x74\xe8"
+      "\xcc\x46\x41\xf8\x19\xe3\x40\xa9\x11\x7b\xc9\x0a\x82\x67\xb8"
+      "\x88\xb5"                                          // cert-sha256
+      "\0\0\0\0\0\0\0\x1ehttps://cert.test/validity.msg"  // validity-url
+      "\0\0\0\0\0\0\0\0"                                  // date
+      "\0\0\0\0\0\0\0\0"                                  // expires
+      "\0\0\0\0\0\0\0\x11https://sxg.test/"               // requestUrl
+      "\0\0\0\0\0\0\0\x0c"
+      "dummy_header";  // responseHeaders
   sxg_write_bytes(expected_message_buf,
                   sizeof(expected_message_buf) - 1 /* terminating NUL */,
                   &expected_message);
