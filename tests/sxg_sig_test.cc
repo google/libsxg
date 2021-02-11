@@ -57,7 +57,12 @@ void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
 
   // EVP_DecodeBlock doesn't support padding chars, so we use the long form.
   ASSERT_TRUE(sxg_buffer_resize(offset + estimated_out_length, dst));
+#ifdef OPENSSL_IS_BORINGSSL
+  EVP_ENCODE_CTX context;
+  EVP_ENCODE_CTX* ctx = &context;
+#else
   EVP_ENCODE_CTX* ctx = EVP_ENCODE_CTX_new();
+#endif
   EVP_DecodeInit(ctx);
   EVP_ENCODE_BLOCK_T out_length;
   ASSERT_NE(EVP_DecodeUpdate(ctx, dst->data + offset, &out_length, src->data,
@@ -67,7 +72,9 @@ void sxg_base64decode(const sxg_buffer_t* src, sxg_buffer_t* dst) {
   ASSERT_NE(EVP_DecodeFinal(ctx, dst->data + offset + out_length, &out_length2),
             -1);
   ASSERT_TRUE(sxg_buffer_resize(offset + out_length + out_length2, dst));
+#ifndef OPENSSL_IS_BORINGSSL
   EVP_ENCODE_CTX_free(ctx);
+#endif
 }
 
 // On failure, this leaks a EVP_MD_CTX. Do not use this in production or in a
