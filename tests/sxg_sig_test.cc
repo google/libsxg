@@ -129,21 +129,23 @@ TEST(SxgSig, MakeSignature) {
 
   // https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#name-signature-validity
   sxg_buffer_t expected_message = sxg_empty_buffer();
-  sxg_write_bytes((const uint8_t*)
+  const uint8_t expected_message_buf[] =
                   "                                "
-                  "                                "  // 64 bytes
-                  "HTTP Exchange 1 b3\0 "  // preamble, 20 bytes
+                  "                                "
+                  "HTTP Exchange 1 b3\0 "  // preamble
                   "\x5a\xba\x53\x1e\xb9\xd1\xf4\x8f\x42\x8f\xe7\x22\xcd\x74\xe8"
                   "\xcc\x46\x41\xf8\x19\xe3\x40\xa9\x11\x7b\xc9\x0a\x82\x67\xb8"
-                  "\x88\xb5"  // cert-sha256, 32 bytes
+                  "\x88\xb5"  // cert-sha256
                   "\0\0\0\0\0\0\0\x1ehttps://cert.test/validity.msg"
-                  // validity-url, 38 bytes
-                  "\0\0\0\0\0\0\0\0"  // date, 8 bytes
-                  "\0\0\0\0\0\0\0\0"  // expires, 8 bytes
-                  "\0\0\0\0\0\0\0\x11https://sxg.test/"  // requestUrl, 25 bytes
+                  // validity-url
+                  "\0\0\0\0\0\0\0\0"  // date
+                  "\0\0\0\0\0\0\0\0"  // expires
+                  "\0\0\0\0\0\0\0\x11https://sxg.test/"  // requestUrl
                   "\0\0\0\0\0\0\0\x0c"
-                  "dummy_header", // responseHeaders, 20 bytes
-                  64+20+32+38+8+8+25+20, &expected_message);
+                  "dummy_header"; // responseHeaders
+  sxg_write_bytes(expected_message_buf,
+                  sizeof(expected_message_buf) - 1 /* terminating NUL */,
+                  &expected_message);
 
   {
     SCOPED_TRACE("signature: " + sxg_test::BufferToString(signature));
