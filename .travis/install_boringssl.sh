@@ -9,5 +9,5 @@ pushd boringssl-${BORINGSSL}
 mkdir build
 cd build
 cmake -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC .. 
-make -j`nproc` VERBOSE=1
+make -j`nproc`
 popd

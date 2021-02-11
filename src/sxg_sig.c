@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <openssl/evp.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "libsxg/internal/sxg_buffer.h"
 #include "libsxg/internal/sxg_codec.h"
