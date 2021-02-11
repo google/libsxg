@@ -103,12 +103,6 @@ TEST(SxgSig, ConstructAndRelease) {
 }
 
 TEST(SxgSig, MakeSignature) {
-#ifdef OPENSSL_IS_BORINGSSL
-  std::cout << "hello from boringssl" << std::endl;
-#else
-  std::cout << "hello from openssl" << std::endl;
-#endif
-
   sxg_sig_t sig = sxg_empty_sig();
   X509* cert = sxg_test::LoadX509Cert("testdata/cert256.pem");
   sxg_buffer_t header = sxg_empty_buffer();
