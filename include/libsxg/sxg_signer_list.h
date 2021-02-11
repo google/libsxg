@@ -19,8 +19,8 @@
 
 #include <openssl/evp.h>
 #include <openssl/x509.h>
-
 #include <stdint.h>
+
 #include "stdbool.h"
 
 #ifdef __cplusplus
