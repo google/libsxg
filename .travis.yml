@@ -19,7 +19,7 @@ matrix:
       compiler: clang
       before_script:
         - source ./.travis/install_cmake.sh
-        - source ./.travis/install_openssl.sh
+        - source ./.travis/install_boringssl.sh
       script:
         - install -d build
         - cd build
