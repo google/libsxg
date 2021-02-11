@@ -248,6 +248,7 @@ if (RUN_TEST)
   endif ()
   target_include_directories (test_util PUBLIC ${PROJECT_BINARY_DIR}/include
                                                ${PROJECT_SOURCE_DIR}/include
+                                               ${OPENSSL_INCLUDE_DIR}
                                                ${GTEST_INCLUDE})
   if (SXG_BUILD_SHARED)
     add_dependencies (test_util gtest libgtest libgtest_main sxg)
