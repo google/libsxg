@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+DEPS_DIR="${TRAVIS_BUILD_DIR}/go1.13"
 mkdir ${DEPS_DIR} && pushd ${DEPS_DIR}
 GO="go1.13.9.linux-amd64"
 GO_TAR="${GO}.tar.gz"
