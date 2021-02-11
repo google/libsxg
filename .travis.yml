@@ -17,6 +17,9 @@ matrix:
     - name: 'boringssl'
       os: linux
       compiler: clang
+      apt:
+        packages:
+          - golang-1.13
       before_script:
         - source ./.travis/install_cmake.sh
         - source ./.travis/install_boringssl.sh
