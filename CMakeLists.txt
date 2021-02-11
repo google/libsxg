@@ -281,7 +281,7 @@ function (configure_test test_name)
 endfunction ()
 
 if (RUN_TEST)
-  # configure_test (nfail_malloc_test)
+  configure_test (nfail_malloc_test)
   configure_test (sxg_buffer_test)
   configure_test (sxg_cbor_test)
   if (SXG_WITH_CERT_CHAIN)
