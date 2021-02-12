@@ -17,6 +17,7 @@
 #include "libsxg/internal/sxg_sig.h"
 
 #include <assert.h>
+#include <inttypes.h>
 #include <openssl/evp.h>
 #include <string.h>
 
