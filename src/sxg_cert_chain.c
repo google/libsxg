@@ -153,10 +153,17 @@ bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
   bool success = OCSP_request_add0_id(req, id) &&
                  OCSP_REQ_CTX_set1_req(octx, req) && wait_fd(fd, false, true);
   while (success) {
-    if (OCSP_sendreq_nbio(dst, octx) != -1) {
-      break;
+    switch (OCSP_sendreq_nbio(dst, octx) {
+      case -1:
+        continue;
+      case 0:
+        success = false;
+        break;
+      case 1:
+        success =
+            success && wait_fd(fd, BIO_should_read(io), BIO_should_write(io));
+        break;
     }
-    success = success && wait_fd(fd, BIO_should_read(io), BIO_should_write(io));
   }
 
   OCSP_REQUEST_free(req);
