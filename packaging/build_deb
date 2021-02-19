@@ -18,7 +18,8 @@ readonly TARNAME="${NAME}_${VERSION}"
 
 echo "Working in ${WORKDIR}"
 pushd "${WORKDIR}"
-git clone -b master "${REPOSITORY}" libsxg-repo
+cp -r ${REPOSITORY} libsxg-repo
+cp -r ${REPOSITORY}/. libsxg-repo
 cp -r ${SRCDIR}/debian libsxg-repo
 cd libsxg-repo
 git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.orig.tar.gz" \

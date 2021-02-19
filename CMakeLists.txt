@@ -28,7 +28,7 @@ option (SXG_BUILD_STATIC "Build static library" OFF)
 option (SXG_WITH_CERT_CHAIN ON)
 if (SXG_BUILD_SHARED AND SXG_WITH_CERT_CHAIN)
   option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON)
-endif() 
+endif()
 
 if (NOT SXG_WITH_CERT_CHAIN AND SXG_BUILD_EXECUTABLES)
   message(
@@ -124,6 +124,7 @@ if (SXG_BUILD_EXECUTABLES)
   add_executable (gensxg src/gensxg.c)
 
   target_include_directories (gensxg PRIVATE ${PROJECT_SOURCE_DIR}/include
+                                             ${PROJECT_BINARY_DIR}/include
                                              ${OPENSSL_INCLUDE_DIR})
 
   target_link_libraries (gensxg PRIVATE ${OPENSSL_LIBRARIES} sxg)
@@ -131,7 +132,8 @@ if (SXG_BUILD_EXECUTABLES)
   add_executable (gencertchain src/gencertchain.c)
 
   target_include_directories (gencertchain PRIVATE ${PROJECT_SOURCE_DIR}/include
-                                                 ${OPENSSL_INCLUDE_DIR})
+                                                   ${PROJECT_BINARY_DIR}/include
+                                                   ${OPENSSL_INCLUDE_DIR})
 
   target_link_libraries (gencertchain PRIVATE ${OPENSSL_LIBRARIES} sxg)
 endif ()
