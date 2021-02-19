@@ -1,0 +1,37 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+include /usr/share/dpkg/default.mk
+
+# see FEATURE AREAS in dpkg-buildflags(1)
+DEB_BUILD_MAINT_OPTIONS=hardening=+all
+
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
+
+export DH_VERBOSE = 1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+export SOVER = 0.1
+export SONAME = libsxg.so.$(SOVER)
+
+%:
+	dh $@
+override_dh_auto_configure:
+	dh_auto_configure -- -DRUN_TEST=FALSE \
+			     -DBUILD_SHARED_LIBS=TRUE \
+			     -DCMAKE_C_COMPILER=gcc \
+			     -DCMAKE_INSTALL_BINDIR=/usr/bin \
+			     -DCMAKE_INSTALL_LIBDIR=/usr/lib/$(DEB_HOST_MULTIARCH) \
+			     -DCMAKE_CXX_COMPILER=g++ \
+           -DSXG_BUILD_SHARED=TRUE \
+           -DSXG_WITH_CERT_CHAIN=TRUE \
+			     -DCMAKE_BUILD_TYPE=Release
+
+override_dh_auto_install:
+	mkdir -p debian/tmp/usr/share/man/man1
+	mkdir -p debian/tmp/usr/share/man/man3
+	cp docs/gensxg.1       debian/tmp/usr/share/man/man1/gensxg.1
+	cp docs/gencertchain.1 debian/tmp/usr/share/man/man1/gencertchain.1
+	cp docs/libsxg.3       debian/tmp/usr/share/man/man3/libsxg.3
+	dh_auto_install

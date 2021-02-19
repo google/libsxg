@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+# Builds the libsxg deb packages. The script must be run at the root
+# directory of the libsxg source tree. The deb packages will be copied to
+# the current directory.
+#
+# This script is written mainly for CI.
+
+set -ex
+
+readonly SRCDIR="${PWD}"
+readonly REPOSITORY="${1}"
+readonly DESTDIR="${PWD}/output"
+readonly WORKDIR="$(mktemp -d --tmpdir build_deb.XXXXXX)"
+readonly NAME='libsxg'
+readonly VERSION='0.2'
+readonly TARNAME="${NAME}_${VERSION}"
+
+echo "Working in ${WORKDIR}"
+pushd "${WORKDIR}"
+git clone -b master "${REPOSITORY}" libsxg-repo
+cp -r ${SRCDIR}/debian libsxg-repo
+cd libsxg-repo
+git archive --format=tar.gz --output="${WORKDIR}/${TARNAME}.orig.tar.gz" \
+    --prefix="${NAME}/" HEAD
+rm .git -rf
+
+debuild -b -us -uc
+dpkg-buildpackage -us -uc
+
+#rm "${DESTDIR}" -rf
+mkdir -p "${DESTDIR}"
+cp -r ../*.deb "${DESTDIR}"
+popd
+
+echo "Full package output in ${DESTDIR}"
+ls "${DESTDIR}"
+rm -rf "${WORKDIR}"

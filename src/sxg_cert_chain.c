@@ -161,6 +161,7 @@ bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
       case 0:
         success = false;
       case 1:
+        break;
     }
     break;
   }
