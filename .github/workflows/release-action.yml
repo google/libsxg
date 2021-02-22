@@ -16,9 +16,9 @@ jobs:
       - name: docker build with arg
         run: |
           mkdir -p $(pwd)/${{ matrix.names.image_name }}
-          docker build --build-arg base_image=${{ matrix.names.base_image }} -t ${{ matrix.names.image_name }} -f packaging/deb.dockerfile .
+          docker build --build-arg base_image=${{ matrix.names.base_image }} -t ${{ matrix.names.image_name }} -f packaging/Dockerfile .
           docker run --rm --mount "type=bind,source=$(pwd)/${{ matrix.names.image_name }},target=/libsxg/output" ${{ matrix.names.image_name }}
-          zip -r libsxg-${{ matrix.names.image_name }}.zip ${{ matrix.names.image_name }}
+          zip -r libsxg-${{ matrix.names.image_name }}.zip $(pwd)/${{ matrix.names.image_name }}
 
       - name: Upload to release
         uses: kumagi/upload-to-release@v0.1.2
