@@ -42,7 +42,7 @@ Multi-Arch: foreign
 Depends: libsxg0.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
-Description: Signed HTTP Exchange utilities to manipurate SXG files
+Description: Signed HTTP Exchange utilities to manipulate SXG files
  gensxg enables you to generate SXG file on command line.
  You need SXG certificate and private key to generate proper SXG file.
  gencertchain enables you to generate Certificate Chain file.

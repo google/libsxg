@@ -19,6 +19,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ADD . /libsxg
+WORKDIR /libsxg
+
 ADD packaging /packaging
 WORKDIR /packaging
 
