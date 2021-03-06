@@ -74,7 +74,8 @@ TEST_F(CertChainTest, ExtractOcspUri) {
   sxg_buffer_release(&url);
 }
 
-TEST_F(CertChainTest, SendRequest) {
+// TODO(twifkak): Fix this test.
+TEST_F(CertChainTest, DISABLED_SendRequest) {
   int fds[2];
   ASSERT_EQ(0, pipe(fds));
   BIO* mem = BIO_new_fd(fds[1], /*close_flag*/ 1);

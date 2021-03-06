@@ -157,6 +157,7 @@ bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
       case -1:
         success =
             success && wait_fd(fd, BIO_should_read(io), BIO_should_write(io));
+        // TODO(twifkak): Delay with backoff & max retries.
         continue;
       case 0:
         success = false;
