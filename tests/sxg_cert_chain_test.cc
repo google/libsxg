@@ -38,18 +38,14 @@ class CertChainTest : public ::testing::Test {
   }
   void SetEcdsa256() {
     FILE* const certfile = fopen("testdata/ocsp_included.pem", "r");
-    if (certfile == nullptr) {
-      abort();
-    }
+    ASSERT_TRUE(certfile != nullptr);
     cert_ = PEM_read_X509(certfile, nullptr, nullptr, nullptr);
     issuer_ = PEM_read_X509(certfile, nullptr, nullptr, nullptr);
     fclose(certfile);
   };
   void SetBadCert() {
     FILE* const certfile = fopen("testdata/cert256.pem", "r");
-    if (certfile == nullptr) {
-      abort();
-    }
+    ASSERT_TRUE(certfile != nullptr);
     cert_ = PEM_read_X509(certfile, nullptr, nullptr, nullptr);
     issuer_ = PEM_read_X509(certfile, nullptr, nullptr, nullptr);
     fclose(certfile);
@@ -67,7 +63,7 @@ class CertChainTest : public ::testing::Test {
 };
 
 TEST_F(CertChainTest, ExtractOcspUri) {
-  SetEcdsa256();
+  ASSERT_NO_FATAL_FAILURE(SetEcdsa256());
   sxg_buffer_t url = sxg_empty_buffer();
 
   EXPECT_TRUE(sxg_extract_ocsp_url(cert_, &url));
@@ -82,7 +78,7 @@ TEST_F(CertChainTest, SendRequest) {
   int fds[2];
   ASSERT_EQ(0, pipe(fds));
   BIO* mem = BIO_new_fd(fds[1], /*close_flag*/ 1);
-  SetEcdsa256();
+  ASSERT_NO_FATAL_FAILURE(SetEcdsa256());
   OCSP_RESPONSE* result = nullptr;
   std::string buff(4096, '\0');
   const uint8_t kExpectedBody[] =
@@ -122,7 +118,7 @@ TEST_F(CertChainTest, SendRequest) {
 }
 
 TEST_F(CertChainTest, FailedToExtractOcspUri) {
-  SetBadCert();  // Does not contains ocsp information.
+  ASSERT_NO_FATAL_FAILURE(SetBadCert());  // Does not contains ocsp information.
   sxg_buffer_t url = sxg_empty_buffer();
 
   EXPECT_FALSE(sxg_extract_ocsp_url(cert_, &url));
@@ -145,7 +141,7 @@ TEST_F(CertChainTest, EmptyChain) {
 // DO NOT include them in casual or daily tests.
 
 TEST_F(CertChainTest, DISABLED_GetOcsp) {
-  SetEcdsa256();
+  ASSERT_NO_FATAL_FAILURE(SetEcdsa256());
   OCSP_RESPONSE* ocsp = nullptr;
   EXPECT_TRUE(sxg_fetch_ocsp_response(cert_, issuer_, &ocsp));
   ASSERT_NE(nullptr, ocsp);
@@ -153,7 +149,7 @@ TEST_F(CertChainTest, DISABLED_GetOcsp) {
 }
 
 TEST_F(CertChainTest, DISABLED_Generate) {
-  SetEcdsa256();
+  ASSERT_NO_FATAL_FAILURE(SetEcdsa256());
   sxg_buffer_t result = sxg_empty_buffer();
   sxg_buffer_t sct_list = sxg_empty_buffer();
   sxg_cert_chain_t chain = sxg_empty_cert_chain();
