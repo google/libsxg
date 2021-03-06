@@ -25,7 +25,8 @@ set (LIBSXG_SOVERSION "${CMAKE_PROJECT_VERSION_MAJOR}")
 
 option (SXG_BUILD_SHARED "Build shared library" ON)
 option (SXG_BUILD_STATIC "Build static library" OFF)
-option (SXG_WITH_CERT_CHAIN ON)
+option (SXG_WITH_CERT_CHAIN
+        "Build cert chain functions (depends on OpenSSL)" ON)
 if (SXG_BUILD_SHARED AND SXG_WITH_CERT_CHAIN)
   option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON)
 endif()
