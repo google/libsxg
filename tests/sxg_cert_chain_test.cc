@@ -98,6 +98,7 @@ TEST_F(CertChainTest, SendRequest) {
 
   // The OCSP transaction will fail because this test doesn't mock a response,
   // but we can still validate the request.
+  // TODO(twifkak): Mock a valid OCSP "good" response for the cert.
   EXPECT_FALSE(sxg_execute_ocsp_request(
       mem, "/foobar", OCSP_cert_to_id(EVP_sha256(), cert_, issuer_), &result));
   EXPECT_LT(0, read(fds[0], &buff[0], 4096));
