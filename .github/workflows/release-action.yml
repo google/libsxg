@@ -17,7 +17,7 @@ jobs:
         run: |
           mkdir -p $(pwd)/${{ matrix.names.image_name }}
           docker build --build-arg base_image=${{ matrix.names.base_image }} -t ${{ matrix.names.image_name }} -f packaging/Dockerfile .
-          docker run --rm --mount "type=bind,source=$(pwd)/${{ matrix.names.image_name }},target=/libsxg/output" ${{ matrix.names.image_name }}
+          docker run --rm --mount "type=bind,source=$(pwd)/${{ matrix.names.image_name }},target=/packaging/output" ${{ matrix.names.image_name }}
           zip -r libsxg-${{ matrix.names.image_name }}.zip $(pwd)/${{ matrix.names.image_name }}
 
       - name: Upload to release
