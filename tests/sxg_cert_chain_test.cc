@@ -74,11 +74,10 @@ TEST_F(CertChainTest, ExtractOcspUri) {
   sxg_buffer_release(&url);
 }
 
-// TODO(twifkak): Fix this test.
-TEST_F(CertChainTest, DISABLED_SendRequest) {
+TEST_F(CertChainTest, SendRequest) {
   int fds[2];
   ASSERT_EQ(0, pipe(fds));
-  BIO* mem = BIO_new_fd(fds[1], /*close_flag*/ 1);
+  BIO* mem = BIO_new_fd(fds[1], BIO_CLOSE);
   ASSERT_NO_FATAL_FAILURE(SetEcdsa256());
   OCSP_RESPONSE* result = nullptr;
   std::string buff(4096, '\0');
@@ -97,7 +96,10 @@ TEST_F(CertChainTest, DISABLED_SendRequest) {
   char separator[4];
   std::string body;
 
-  EXPECT_TRUE(sxg_execute_ocsp_request(
+  // The OCSP transaction will fail because this test doesn't mock a response,
+  // but we can still validate the request.
+  // TODO(twifkak): Mock a valid OCSP "good" response for the cert.
+  EXPECT_FALSE(sxg_execute_ocsp_request(
       mem, "/foobar", OCSP_cert_to_id(EVP_sha256(), cert_, issuer_), &result));
   EXPECT_LT(0, read(fds[0], &buff[0], 4096));
   std::stringstream bufstream(buff);
