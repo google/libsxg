@@ -27,6 +27,7 @@
 #include <string.h>
 #include <sys/select.h>
 #include <sys/time.h>
+#include <time.h>
 
 #include "libsxg/internal/sxg_buffer.h"
 #include "libsxg/internal/sxg_cbor.h"
@@ -142,6 +143,18 @@ static bool wait_fd(int fd, bool read, bool write) {
          rv != -1;   // Select error.
 }
 
+static const long nanos_per_sec = 1000000000L;
+
+// Sleeps for the given number of milliseconds.
+static void sleep_ms(int ms) {
+  long ns = ms * 1000000L;
+  struct timespec req;
+  req.tv_sec = ns / nanos_per_sec;
+  req.tv_nsec = ns % nanos_per_sec;
+  while (clock_nanosleep(CLOCK_MONOTONIC, /*flags=*/0, &req, &req))
+    ;
+}
+
 bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
                               OCSP_RESPONSE** dst) {
   int fd;
@@ -152,17 +165,29 @@ bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
   OCSP_REQUEST* const req = OCSP_REQUEST_new();
   bool success = OCSP_request_add0_id(req, id) &&
                  OCSP_REQ_CTX_set1_req(octx, req) && wait_fd(fd, false, true);
+  // Delay with backoff and max retries. This avoids pegging the CPU in the
+  // event of a local failure, and hammering the OCSP responder in the event of
+  // a remote failure, per https://gist.github.com/sleevi/5efe9ef98961ecfb4da8
+  // item 5.
+  int tries = 0;
+  int delay_ms = 100;
   while (success) {
     switch (OCSP_sendreq_nbio(dst, octx)) {
-      case -1:
-        success =
-            success && wait_fd(fd, BIO_should_read(io), BIO_should_write(io));
-        // TODO(twifkak): Delay with backoff & max retries.
+      case -1:  // retry
+        if (++tries <= 5) {
+          sleep_ms(delay_ms);
+          delay_ms *= 2;
+          success = wait_fd(fd, BIO_should_read(io), BIO_should_write(io));
+        } else {
+          success = false;
+        }
         continue;
-      case 0:
+      case 0:  // failure
         success = false;
-      case 1:
-        break;
+      case 1:  // success
+          ;
+        // success == true already.
+        // For both failure and success, break out of the loop.
     }
     break;
   }
