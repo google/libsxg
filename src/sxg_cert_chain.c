@@ -151,7 +151,8 @@ static void sleep_ms(int ms) {
   struct timespec req;
   req.tv_sec = ns / nanos_per_sec;
   req.tv_nsec = ns % nanos_per_sec;
-  while (clock_nanosleep(CLOCK_MONOTONIC, /*flags=*/0, &req, &req));
+  while (clock_nanosleep(CLOCK_MONOTONIC, /*flags=*/0, &req, &req))
+    ;
 }
 
 bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
@@ -172,7 +173,7 @@ bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
   int delay_ms = 100;
   while (success) {
     switch (OCSP_sendreq_nbio(dst, octx)) {
-      case -1: // retry
+      case -1:  // retry
         if (++tries <= 5) {
           sleep_ms(delay_ms);
           delay_ms *= 2;
@@ -181,10 +182,10 @@ bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
           success = false;
         }
         continue;
-      case 0: // failure
+      case 0:  // failure
         success = false;
-      case 1: // success
-        ;
+      case 1:  // success
+          ;
         // success == true already.
         // For both failure and success, break out of the loop.
     }
