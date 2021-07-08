@@ -14,11 +14,37 @@ matrix:
         - cmake -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC ..
         - make VERBOSE=1
         - ctest --output-on-failure
+    - name: 'openssl-cmake_old'
+      os: linux
+      compiler: clang
+      before_script:
+        - source ./.travis/install_cmake_old.sh
+        - source ./.travis/install_openssl.sh
+      script:
+        - install -d build
+        - cd build
+        - cmake -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC ..
+        - make VERBOSE=1
+        - ctest --output-on-failure
     - name: 'boringssl'
       os: linux
       compiler: clang
       before_script:
         - source ./.travis/install_cmake.sh
+        - source ./.travis/install_go.sh
+        - source ./.travis/install_boringssl.sh
+      script:
+        - go version
+        - install -d build
+        - cd build
+        - cmake -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC -DSXG_BUILD_SHARED=off -DSXG_BUILD_STATIC=on -DRUN_TEST=on -DSXG_WITH_CERT_CHAIN=off -DOPENSSL_CRYPTO_LIBRARY=${BORINGSSL_ROOT}/build/crypto/libcrypto.a -DOPENSSL_ROOT_DIR=${BORINGSSL_ROOT} -DOPENSSL_INCLUDE_DIR=${BORINGSSL_ROOT}/include ..
+        - make VERBOSE=1
+        - ctest --output-on-failure
+    - name: 'boringssl-cmake_old'
+      os: linux
+      compiler: clang
+      before_script:
+        - source ./.travis/install_cmake_old.sh
         - source ./.travis/install_go.sh
         - source ./.travis/install_boringssl.sh
       script:
