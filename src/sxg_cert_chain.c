@@ -151,7 +151,7 @@ static void sleep_ms(int ms) {
   struct timespec req;
   req.tv_sec = ns / nanos_per_sec;
   req.tv_nsec = ns % nanos_per_sec;
-#if __APPLE__
+#if defined(__APPLE__) && defined(__MACH__)
   while (nanosleep(&req, NULL))
     ;
 #else
