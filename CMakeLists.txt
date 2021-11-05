@@ -27,6 +27,8 @@ option (SXG_BUILD_SHARED "Build shared library" ON)
 option (SXG_BUILD_STATIC "Build static library" OFF)
 option (SXG_WITH_CERT_CHAIN
         "Build cert chain functions (depends on OpenSSL)" ON)
+option (SXG_BUILD_MAN "Build SXG man target" ON)
+option (SXG_BUILD_FUZZER "Build SXG fuzzer" ON)
 if (SXG_BUILD_SHARED AND SXG_WITH_CERT_CHAIN)
   option (SXG_BUILD_EXECUTABLES "Build gensxg/gencertchain executables" ON)
 endif()
@@ -183,12 +185,14 @@ endif ()
 # ##############################################################################
 
 # This target requires ronn executable in your path.
-add_custom_target (
-  man
-  COMMAND ronn -r ${CMAKE_SOURCE_DIR}/docs/gencertchain.md --pipe > ${CMAKE_SOURCE_DIR}/docs/gencertchain.1 &&
-          ronn -r ${CMAKE_SOURCE_DIR}/docs/gensxg.md --pipe > ${CMAKE_SOURCE_DIR}/docs/gensxg.1 &&
-          ronn -r ${CMAKE_SOURCE_DIR}/docs/libsxg.md --pipe > ${CMAKE_SOURCE_DIR}/docs/libsxg.3
-  COMMENT "Generating roff files with ronn ...")
+if (SXG_BUILD_MAN)
+  add_custom_target (
+    man
+    COMMAND ronn -r ${CMAKE_SOURCE_DIR}/docs/gencertchain.md --pipe > ${CMAKE_SOURCE_DIR}/docs/gencertchain.1 &&
+            ronn -r ${CMAKE_SOURCE_DIR}/docs/gensxg.md --pipe > ${CMAKE_SOURCE_DIR}/docs/gensxg.1 &&
+            ronn -r ${CMAKE_SOURCE_DIR}/docs/libsxg.md --pipe > ${CMAKE_SOURCE_DIR}/docs/libsxg.3
+    COMMENT "Generating roff files with ronn ...")
+endif ()
 
 # ##############################################################################
 # Linter
@@ -305,32 +309,34 @@ endif ()
 # Fuzzing
 # ##############################################################################
 
-set (fuzzer_option "-fsanitize=address,fuzzer")
-function (configure_fuzzer fuzzer_name)
-  message ("-- Configuring fuzzer: ${fuzzer_name}")
-  add_executable (${fuzzer_name} fuzzers/${fuzzer_name}.cc)
-  target_compile_options (${fuzzer_name} PRIVATE ${fuzzer_option})
-  target_link_options (${fuzzer_name} PRIVATE ${fuzzer_option})
+if (SXG_BUILD_FUZZER)
+  set (fuzzer_option "-fsanitize=address,fuzzer")
+  function (configure_fuzzer fuzzer_name)
+    message ("-- Configuring fuzzer: ${fuzzer_name}")
+    add_executable (${fuzzer_name} fuzzers/${fuzzer_name}.cc)
+    target_compile_options (${fuzzer_name} PRIVATE ${fuzzer_option})
+    target_link_options (${fuzzer_name} PRIVATE ${fuzzer_option})
 
-  add_dependencies (${fuzzer_name} sxg)
-  target_link_libraries (${fuzzer_name} PRIVATE sxg ${OPENSSL_LIBRARIES})
-  target_include_directories (${fuzzer_name}
-                              PRIVATE ${PROJECT_SOURCE_DIR}/include)
-endfunction ()
+    add_dependencies (${fuzzer_name} sxg)
+    target_link_libraries (${fuzzer_name} PRIVATE sxg ${OPENSSL_LIBRARIES})
+    target_include_directories (${fuzzer_name}
+                                PRIVATE ${PROJECT_SOURCE_DIR}/include)
+  endfunction ()
 
-# check_cxx_compiler_flag command may be good.
-try_compile (
-  fuzzer_available ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}/fuzzers/signer_fuzzer.cc
-  CMAKE_FLAGS "-DINCLUDE_DIRECTORIES:STRING=${PROJECT_SOURCE_DIR}/include"
-  LINK_LIBRARIES "sxg ${OPENSSL_LIBRARIES}" LINK_OPTIONS ${fuzzer_option})
+  # check_cxx_compiler_flag command may be good.
+  try_compile (
+    fuzzer_available ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}/fuzzers/signer_fuzzer.cc
+    CMAKE_FLAGS "-DINCLUDE_DIRECTORIES:STRING=${PROJECT_SOURCE_DIR}/include"
+    LINK_LIBRARIES "sxg ${OPENSSL_LIBRARIES}" LINK_OPTIONS ${fuzzer_option})
 
-if (RUN_TEST)
-  if (fuzzer_available)
-    configure_fuzzer (signer_fuzzer)
-  else ()
-    message (
-      "fuzzer disabled because the compiler ${CMAKE_CXX_COMPILER} does not support [${fuzzer_option}] option"
-    )
+  if (RUN_TEST)
+    if (fuzzer_available)
+      configure_fuzzer (signer_fuzzer)
+    else ()
+      message (
+        "fuzzer disabled because the compiler ${CMAKE_CXX_COMPILER} does not support [${fuzzer_option}] option"
+      )
+    endif ()
   endif ()
-endif ()
+endif()
