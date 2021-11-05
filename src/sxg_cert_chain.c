@@ -151,8 +151,13 @@ static void sleep_ms(int ms) {
   struct timespec req;
   req.tv_sec = ns / nanos_per_sec;
   req.tv_nsec = ns % nanos_per_sec;
+#if defined(__APPLE__) && defined(__MACH__)
+  while (nanosleep(&req, NULL))
+    ;
+#else
   while (clock_nanosleep(CLOCK_MONOTONIC, /*flags=*/0, &req, &req))
     ;
+#endif
 }
 
 bool sxg_execute_ocsp_request(BIO* io, const char* path, OCSP_CERTID* id,
