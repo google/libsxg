@@ -230,7 +230,7 @@ if (RUN_TEST)
   ExternalProject_Add (
     gtest
     GIT_REPOSITORY https://github.com/google/googletest
-    GIT_TAG master
+    GIT_TAG main
     SOURCE_DIR ${PROJECT_BINARY_DIR}/third_party/gtest
     BINARY_DIR ${PROJECT_BINARY_DIR}/gtest
     INSTALL_COMMAND "")
