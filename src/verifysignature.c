@@ -80,7 +80,8 @@ int main(int argc, char** argv) {
   unsigned char* buf = malloc(256);
   unsigned char* sigbuf = NULL;
   BIO* sigbio = BIO_new_file(argv[3], "rb");
-  int siglen = EVP_PKEY_get_size(pubkey);
+  int siglen = EVP_PKEY_size(pubkey);
+
   sigbuf = malloc(siglen);
   siglen = BIO_read(sigbio, sigbuf, siglen);
   BIO_free(sigbio);
