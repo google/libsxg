@@ -11,7 +11,8 @@
 // $ clang verifysignature.c -std=c2x -lssl -lcrypto -o verifysignature
 //
 // Usage:
-// $ ./verifysignature <digestalgorithm> <publickey> <signature file> <data file>
+// $ ./verifysignature <digestalgorithm> <publickey> <signature file> <data
+// file>
 //
 // Example:
 // $ ./verifysignature sha256 ecpubkey.pem signature.bin data.txt
@@ -20,21 +21,22 @@
 // Signature verified OK.
 // Signature not verified. Not OK.
 
-#include <unistd.h>  // for close()
-#include <stdio.h>   // for open(), printf().
 #include <fcntl.h>   // for O_RDONLY flag.
+#include <stdio.h>   // for open(), printf().
+#include <unistd.h>  // for close()
 
-#include "openssl/engine.h"
 #include "openssl/bio.h"
 #include "openssl/ec.h"
+#include "openssl/engine.h"
 #include "openssl/evp.h"
 #include "openssl/pem.h"
 #include "openssl/rsa.h"
 
-
 int main(int argc, char** argv) {
   if (argc < 5) {
-    printf("Usage: verifysignature sha256 publickey.pem signature.bin message.txt\n");
+    printf(
+        "Usage: verifysignature sha256 publickey.pem signature.bin "
+        "message.txt\n");
     return 0;
   }
 
@@ -45,10 +47,12 @@ int main(int argc, char** argv) {
 
   // Initialize the digest type.
   EVP_MD* md = NULL;
-  md = (EVP_MD*) EVP_get_digestbyname(argv[1]);
+  md = (EVP_MD*)EVP_get_digestbyname(argv[1]);
   if (!md) {
-    printf("Unable to open md object for digest type: %s\n."
-           "Accepted values: sha1, sha256, sha348, sha512.\n", argv[1]);
+    printf(
+        "Unable to open md object for digest type: %s\n."
+        "Accepted values: sha1, sha256, sha348, sha512.\n",
+        argv[1]);
   }
 
   // Read the public key.
@@ -94,7 +98,7 @@ int main(int argc, char** argv) {
   BIO_get_md_ctx(inp, &ctx);
 
   while (BIO_pending(inp) || !BIO_eof(inp)) {
-    if (BIO_read(inp, (char*) buf, 256) == 0) break;
+    if (BIO_read(inp, (char*)buf, 256) == 0) break;
   }
 
   if (EVP_DigestVerifyFinal(ctx, sigbuf, (unsigned int)siglen) == 1) {
