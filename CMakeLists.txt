@@ -141,6 +141,14 @@ if (SXG_BUILD_EXECUTABLES)
                                                    ${OPENSSL_INCLUDE_DIR})
 
   target_link_libraries (gencertchain PRIVATE ${OPENSSL_LIBRARIES} sxg)
+
+  add_executable (verifysignature src/verifysignature.c)
+
+  target_include_directories (verifysignature PRIVATE ${PROJECT_SOURCE_DIR}/include
+                                                      ${PROJECT_BINARY_DIR}/include
+                                                      ${OPENSSL_INCLUDE_DIR})
+
+  target_link_libraries (verifysignature PRIVATE ${OPENSSL_LIBRARIES} sxg)
 endif ()
 
 # ##############################################################################
@@ -178,6 +186,7 @@ install (
 if (SXG_BUILD_EXECUTABLES)
   install (TARGETS gensxg RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   install (TARGETS gencertchain RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install (TARGETS verifysignature RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
 
 # ##############################################################################
