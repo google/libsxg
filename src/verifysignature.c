@@ -1,11 +1,11 @@
-// Binary to help us debug the signature verification.
+// Binary to help us debug the signature verification for yet to be released
+// UpdateCacheAPI. The signature is used to send requests to Google servers
+// to update cache entries for publishers.
 // It works on almost all supported public key types and message digests.
 //
 // Currently the signature has to be in binary format. If it is in base64
 // or other encoding, you can convert it into binary format save it in file and
 // run this binary to validate the signature.
-//
-// TODO(amaltas): Support for base64 encoded signatures.
 //
 // Compilation:
 // $ clang verifysignature.c -std=c2x -lssl -lcrypto -o verifysignature
